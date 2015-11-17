@@ -1,12 +1,29 @@
 def computeHashes(key):
     return [1]
 
+
+"""
+This module defines simulation of NIC bloom filter
+"""
+
 class NicBloomFilter:
+    """
+    Create a new NIC bloom filter which contains both a counting bloom filter (list)
+    and a table (directory)
+    """
+
     def __init__(self, mBuckets):
         self.buckets = [0] * mBuckets
         self.table = dict()
 
     def add(self, key, reasonCode):
+        """
+        Add a key to the counting bloom filter
+        Add (key, [reasonCode]) to the table (Append the list)
+
+        :param string key: Uri format of name with "/"
+        :param string reasonCode: the reason to insert the key (e.g., PIT, FIB, CS, etc.)
+        """
         # key is in Uri format
         hashes = computeHashes(key)
         for eachHash in hashes:
@@ -18,6 +35,13 @@ class NicBloomFilter:
             self.table[key] = [reasonCode]
 
     def remove(self, key, reasonCode):
+        """
+        Remove a key from the counting bloom filter
+        Remove (key, [reasonCode]) from the table
+
+        :param string key: Uri format of name with "/"
+        :param string reasonCode: the reason to insert the key (e.g., PIT, FIB, CS, etc.)
+        """
         hashes = computeHashes(key)
         for eachHash in hashes:
             self.buckets[eachHash] -= 1
@@ -31,6 +55,14 @@ class NicBloomFilter:
                 self.table.pop(key)
 
     def query(self, key):
+        """
+        Query whether the key is in bloom filter and check if it is a FP
+        by checking the table
+
+        :param string key: Uri format of name with "/"
+        :return: True, False or "FP"
+        :rtype: bool or string
+        """
         hashes = computeHashes(key)
         isInBuckets = True
         
