@@ -19,34 +19,37 @@
 
 
 """
-Evaluate the fairness for XorHashes
-
-:param int n: the number of items inserted
-:param list bucketList: a list of buckets contains the hit number of each bucket
-:return: result
-:rtype: float
+This is an integration test for nic_sim
+param string inputFileName: the input file name
+param string outputFileName: the output file name
 """
-def hashFairness(n, bucketList):
-	total = 0
-	m = len(bucketList)
 
-	for bucket in bucketList:
-		total += bucket * bucket
+from nic_sim import NicSim
+import sys
 
-	return n*n*1.0/m/total
+if __name__ == "__main__":
+	if len(sys.argv) < 3:
+		print "usage: main <inputFileName> <outputFileName>"
+		exit(1)
+	else:
+		inputFileName = sys.argv[1]
+		outputFileName = sys.argv[2]
+
+	nicSim = NicSim(100)
+
+	inputFile = open(inputFileName,"r")
+	outputFile = open(outputFileName,"w")
+
+	c = 0
+	for eachLine in inputFile:
+		c+=1
+		print "#"+str(c) +": "+eachLine
+		outputList = nicSim.parseTrafficTableTrace(eachLine)
+		if type(outputList) == type([]): 
+			outputFile.writelines('\t'.join(outputList) +'\n')
 
 
-from xor_hashes import XorHashes
 
-if __name__ == '__main__':
-	xorHashes = XorHashes(1,100)
-	buckets = [0]*1000
-	for i in range(100):
-		hs = xorHashes.computeHashes(str(i))
-		print hs[0]
-		buckets[hs[0] % 100] += 1
-
-	print hashFairness(100, buckets)		
-
-
+	inputFile.close()
+	outputFile.close()
 

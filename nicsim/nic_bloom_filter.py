@@ -1,6 +1,6 @@
 # -*- Mode:python; c-file-style:"gnu"; indent-tabs-mode:nil -*- */
 #
-# Copyright (C) 2014-2015 Regents of the University of California.
+# Copyright (C) 2015-2016 Regents of the University of Arizona
 # Author: Teng Liang <philoliang@email.arizona.edu>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # A copy of the GNU Lesser General Public License is in the file COPYING.
-
 
 
 """
@@ -102,3 +101,5 @@ class NicBloomFilter:
         else:
             return False
 
+    def __str__(self):
+        return "Bloom Filter buckets: "+str(self.buckets)+"\nBloom Filter table: "+str(self.table)+'\n'

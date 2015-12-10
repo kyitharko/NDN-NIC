@@ -1,6 +1,6 @@
 # -*- Mode:python; c-file-style:"gnu"; indent-tabs-mode:nil -*- */
 #
-# Copyright (C) 2014-2015 Regents of the University of California.
+# Copyright (C) 2015-2016 Regents of the University of Arizona
 # Author: Teng Liang <philoliang@email.arizona.edu>
 #
 # This program is free software: you can redistribute it and/or modify
