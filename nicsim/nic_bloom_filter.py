@@ -33,11 +33,12 @@ class NicBloomFilter:
         self.m = m
         self.buckets = [0] * m
         self.table = dict()
-        if hasher is None:
+
+        if hasher is None or type(hasher) == int:
             from xor_hashes import XorHashes
-            self.hasher = XorHashes.create(3, m)
-        else:
-            self.hasher = hasher
+            nHashFunctions = 3 if hasher is None else hasher
+            hasher = XorHashes.create(nHashFunctions, m)
+        self.hasher = hasher
 
     def add(self, key, reasonCode):
         """
@@ -84,3 +85,60 @@ class NicBloomFilter:
             return False
 
         return self.table.get(key, "FP")
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Evaluate Bloom filter false positive.")
+    parser.add_argument("--k", type=int, default=3,
+                        help="number of hash functions")
+    parser.add_argument("--m", type=int, default=128,
+                        help="number of buckets")
+    parser.add_argument("--n", type=int, default=32,
+                        help="number of keys")
+    parser.add_argument("--t", type=int, default=1024,
+                        help="number of trials")
+    parser.add_argument("--keys", type=argparse.FileType('r'),
+                        help="text file to read keys from; must have at least n+t lines and they must be unique")
+    parser.add_argument("-v", action="store_true",
+                        help="verbose output")
+    args = parser.parse_args()
+
+    if args.keys is None:
+        def numericKeySource():
+            i = 0
+            while True:
+                yield str(i)
+                i += 1
+        keySource = numericKeySource().__iter__()
+    else:
+        keySource = args.keys
+
+    nbf = NicBloomFilter(args.m, args.k)
+    for i in range(args.n):
+        key = next(keySource).rstrip()
+        nbf.add(key, "X")
+        if args.v:
+            print "Insert key %s" % key
+
+    nFalsePositives = 0
+    import random
+    for i in range(args.t):
+        key = next(keySource).rstrip()
+        result = nbf.query(key)
+        if args.v:
+            print "Lookup key %s %s" % (key, "OK" if result is False else "FP")
+        if result == "FP":
+            nFalsePositives += 1
+
+    fpRateActual = float(nFalsePositives) / args.t
+
+    import math
+    fpRate1 = math.pow(1 - math.exp(-float(args.n) * args.k / args.m), args.k)
+    kOpt = float(args.m) / args.n * math.log(2)
+    fpRate1kOpt = math.pow(1 - math.exp(-float(args.n) * kOpt / args.m), kOpt)
+
+    print "Actual FP rate = %0.6f" % fpRateActual
+    print "FP rate (classical formula) = %0.6f" % fpRate1
+    print "Optimal k = %0.6f" % kOpt
+    print "FP rate with optimal k = %0.6f" % fpRate1kOpt
