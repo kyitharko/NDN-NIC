@@ -1,6 +1,6 @@
 # -*- Mode:python; c-file-style:"gnu"; indent-tabs-mode:nil -*- */
 #
-# Copyright (C) 2014-2015 Regents of the University of California.
+# Copyright (C) 2015-2016 Regents of the University of Arizona
 # Author: Teng Liang <philoliang@email.arizona.edu>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -17,12 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
-
 """
 This module defines simulation of NIC with two bloom filters
 """
 
 from nic_bloom_filter import NicBloomFilter
+from utility import getPrefixes
 
 class Nic:
     """
@@ -30,8 +30,8 @@ class Nic:
     """
 
     def __init__(self, mBuckets):
-        self.bf1 = NicBloomFilter(m)
-        self.bf2 = NicBloomFilter(m)
+        self.bf1 = NicBloomFilter(mBuckets)
+        self.bf2 = NicBloomFilter(mBuckets)
 
     def processPacket(self, netType, name):
         """
@@ -46,22 +46,15 @@ class Nic:
         """
         accepted = False
         reasonCode = []
-
-
         
         #Get prefixes of the input name
-        prefixes = ['/'] 
-        components = name.split('/')
-     
-        for i in range(2,components+1):
-            prefix = '/'.join(components[:i])
-            prefixes.append(prefix)
-
-        print prefixes
+        prefixes = getPrefixes(name)
+        print "Prefixes of input name : ",prefixes
 
         #check each prefix in bf1 - PIT, FIB, part CS
         for prefix in prefixes:
             result = self.bf1.query(prefix)
+            print "nic - processPacket: ", prefix, result
             if result != False:
                 accepted = True
                 reasonCode += result

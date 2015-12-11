@@ -17,36 +17,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
-
 """
-Evaluate the fairness for XorHashes
-
-:param int n: the number of items inserted
-:param list bucketList: a list of buckets contains the hit number of each bucket
-:return: result
-:rtype: float
+This module defines some useful small functions 
 """
-def hashFairness(n, bucketList):
-	total = 0
-	m = len(bucketList)
 
-	for bucket in bucketList:
-		total += bucket * bucket
+def getPrefixes(name):
+    #Get prefixes of the input name
+    prefixes = ['/'] 
+    components = name.split('/')
+ 
+    for i in range(2,len(components)+1):
+        prefix = '/'.join(components[:i])
+        prefixes.append(prefix)
 
-	return n*n*1.0/m/total
-
-
-from xor_hashes import XorHashes
-
-if __name__ == '__main__':
-	xorHashes = XorHashes(1,100)
-	buckets = [0]*1000
-	for i in range(100):
-		hs = xorHashes.computeHashes(str(i))
-		print hs[0]
-		buckets[hs[0] % 100] += 1
-
-	print hashFairness(100, buckets)		
-
-
+    return prefixes
 
