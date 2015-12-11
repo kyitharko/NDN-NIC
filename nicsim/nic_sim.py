@@ -19,7 +19,7 @@
 
 
 """
-This module defines simulation of NDN-NIC, which contains a NIC simulator and 
+This module defines simulation of NDN-NIC, which contains a NIC simulator and
 three tables (PIT, FIB, and CS)
 """
 
@@ -39,70 +39,64 @@ class NicSim:
         self.cs = Cs(self.nic)
 
     def parseTrafficTableTrace(self, inputLine):
-    	inputList = inputLine.split("\t")
-    	print "inputList : ", inputList
-    	traceType = inputList[1]
+        inputList = inputLine.split("\t")
+        print "inputList : ", inputList
+        traceType = inputList[1]
 
-    	outputList = []
+        outputList = []
 
-    	if traceType == "PKT":
-    		#processing pakcet trace
-    		packetType = inputList[2]
-    		packetName = inputList[3]
-    		accepted, reasonCode = self.nic.processPacket(packetType, packetName)
+        if traceType == "PKT":
+            #processing pakcet trace
+            packetType = inputList[2]
+            packetName = inputList[3]
+            accepted, reasonCode = self.nic.processPacket(packetType, packetName)
 
-    		print accepted, reasonCode
-    		#strip \n from last component
-    		if "\n" in inputList[4]:
-    			inputList[4] = inputList[4][:-1]
+            print accepted, reasonCode
+            #strip \n from last component
+            if "\n" in inputList[4]:
+                inputList[4] = inputList[4][:-1]
 
-    		outputList.append(inputList[0])
-    		outputList.append(inputList[2])
-    		outputList.append(inputList[3])
-    		outputList.append(inputList[4])
+            outputList.append(inputList[0])
+            outputList.append(inputList[2])
+            outputList.append(inputList[3])
+            outputList.append(inputList[4])
 
-    		if accepted:
-    			outputList.append(",".join(reasonCode))
-    		else:
-    			outputList.append("DROP")
+            if accepted:
+                outputList.append(",".join(reasonCode))
+            else:
+                outputList.append("DROP")
 
-    		print "outputList ",outputList
-    		return outputList
+            print "outputList ",outputList
+            return outputList
 
-    	elif traceType == "INS":
-    		tableName = inputList[2]
-    		packetName = inputList[3]
-    		if "\n" in packetName:
-    			packetName = packetName[:-1]
-    		
-    		if tableName == "PIT":
-    			self.pit.insert(packetName)
-    		elif tableName == "FIB":
-    			self.fib.insert(packetName)
-    		elif tableName == "CS":
-    			self.cs.insert(packetName)
+        elif traceType == "INS":
+            tableName = inputList[2]
+            packetName = inputList[3]
+            if "\n" in packetName:
+                packetName = packetName[:-1]
 
-    		print "   BF1", self.nic.bf1
-    		print "\n   BF2", self.nic.bf2
+            if tableName == "PIT":
+                self.pit.insert(packetName)
+            elif tableName == "FIB":
+                self.fib.insert(packetName)
+            elif tableName == "CS":
+                self.cs.insert(packetName)
 
-    	elif traceType == "DEL":
-    		tableName = inputList[2]
-    		packetName = inputList[3]
-    		if "\n" in packetName:
-    			packetName = packetName[:-1]
-    		
-    		if tableName == "PIT":
-    			self.pit.erase(packetName)
-    		elif tableName == "FIB":
-    			self.fib.erase(packetName)
-    		elif tableName == "CS":
-    			self.cs.erase(packetName)
+            print "   BF1", self.nic.bf1
+            print "\n   BF2", self.nic.bf2
 
-    		print "   BF1", self.nic.bf1
-    		print "\n   BF2", self.nic.bf2
+        elif traceType == "DEL":
+            tableName = inputList[2]
+            packetName = inputList[3]
+            if "\n" in packetName:
+                packetName = packetName[:-1]
 
+            if tableName == "PIT":
+                self.pit.erase(packetName)
+            elif tableName == "FIB":
+                self.fib.erase(packetName)
+            elif tableName == "CS":
+                self.cs.erase(packetName)
 
-
-
-
-
+            print "   BF1", self.nic.bf1
+            print "\n   BF2", self.nic.bf2

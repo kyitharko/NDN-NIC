@@ -50,7 +50,7 @@ class NicBloomFilter:
         hashes = self.xorHashes.computeHashes(key)
         for eachHash in hashes:
             self.buckets[eachHash % self.mBuckets] += 1
-        
+
         if key in self.table.keys():
             self.table[key].append(reasonCode)
         else:
@@ -67,7 +67,7 @@ class NicBloomFilter:
         hashes = self.xorHashes.computeHashes(key)
         for eachHash in hashes:
             self.buckets[eachHash % self.mBuckets] -= 1
-         
+
         if key not in self.table.keys():
             raise KeyError
         else:
@@ -87,7 +87,7 @@ class NicBloomFilter:
         """
         hashes = self.xorHashes.computeHashes(key)
         isInBuckets = True
-        
+
         for eachHash in hashes:
             if self.buckets[eachHash % self.mBuckets] == 0:
                 isInBuckets = False

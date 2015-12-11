@@ -18,17 +18,16 @@
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
 """
-This module defines some useful small functions 
+This module defines some useful small functions
 """
 
 def getPrefixes(name):
     #Get prefixes of the input name
-    prefixes = ['/'] 
+    prefixes = ['/']
     components = name.split('/')
- 
+
     for i in range(2,len(components)+1):
         prefix = '/'.join(components[:i])
         prefixes.append(prefix)
 
     return prefixes
-

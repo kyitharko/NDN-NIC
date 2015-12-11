@@ -24,42 +24,42 @@ This module defines three tables PIT, FIB, and CS
 from utility import getPrefixes
 
 class Pit:
-	def __init__(self, nic):
-		self.nic = nic
+    def __init__(self, nic):
+        self.nic = nic
 
-	def insert(self, prefix):
-		print "PIT1 prefix insertion to bf1 ", prefix
-		self.nic.bf1.add(prefix, "PIT1")
+    def insert(self, prefix):
+        print "PIT1 prefix insertion to bf1 ", prefix
+        self.nic.bf1.add(prefix, "PIT1")
 
-	def erase(self, prefix):
-		print "PIT1 prefix removal from bf1 ", prefix
-		self.nic.bf1.remove(prefix, "PIT1")
+    def erase(self, prefix):
+        print "PIT1 prefix removal from bf1 ", prefix
+        self.nic.bf1.remove(prefix, "PIT1")
 
 
 class Fib:
-	def __init__(self, nic):
-		self.nic = nic
+    def __init__(self, nic):
+        self.nic = nic
 
-	def insert(self, prefix):
-		print "FIB1 prefix insertion to bf1 ", prefix
-		self.nic.bf1.add(prefix, "FIB1")
+    def insert(self, prefix):
+        print "FIB1 prefix insertion to bf1 ", prefix
+        self.nic.bf1.add(prefix, "FIB1")
 
-	def erase(self, prefix):
-		print "PIT1 prefix removal from bf1 ", prefix
-		self.nic.bf1.remove(prefix, "FIB1")
+    def erase(self, prefix):
+        print "PIT1 prefix removal from bf1 ", prefix
+        self.nic.bf1.remove(prefix, "FIB1")
 
 class Cs:
-	def __init__(self, nic):
-		self.nic = nic
+    def __init__(self, nic):
+        self.nic = nic
 
-	def insert(self, name):
-		print "CS2 prefixes insertion to bf2 ", name
-		prefixes = getPrefixes(name)
-		for prefix in prefixes:
-			self.nic.bf2.add(prefix, "CS2")
+    def insert(self, name):
+        print "CS2 prefixes insertion to bf2 ", name
+        prefixes = getPrefixes(name)
+        for prefix in prefixes:
+            self.nic.bf2.add(prefix, "CS2")
 
-	def erase(self, name):
-		print "CS2 prefixes removal from bf2 ", name
-		prefixes = getPrefixes(name)
-		for prefix in prefixes:
-			self.nic.bf2.remove(prefix, "CS2")
+    def erase(self, name):
+        print "CS2 prefixes removal from bf2 ", name
+        prefixes = getPrefixes(name)
+        for prefix in prefixes:
+            self.nic.bf2.remove(prefix, "CS2")

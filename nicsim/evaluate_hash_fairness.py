@@ -27,26 +27,23 @@ Evaluate the fairness for XorHashes
 :rtype: float
 """
 def hashFairness(n, bucketList):
-	total = 0
-	m = len(bucketList)
+    total = 0
+    m = len(bucketList)
 
-	for bucket in bucketList:
-		total += bucket * bucket
+    for bucket in bucketList:
+        total += bucket * bucket
 
-	return n*n*1.0/m/total
+    return n*n*1.0/m/total
 
 
 from xor_hashes import XorHashes
 
 if __name__ == '__main__':
-	xorHashes = XorHashes(1,100)
-	buckets = [0]*1000
-	for i in range(100):
-		hs = xorHashes.computeHashes(str(i))
-		print hs[0]
-		buckets[hs[0] % 100] += 1
+    xorHashes = XorHashes(1,100)
+    buckets = [0]*1000
+    for i in range(100):
+        hs = xorHashes.computeHashes(str(i))
+        print hs[0]
+        buckets[hs[0] % 100] += 1
 
-	print hashFairness(100, buckets)		
-
-
-
+    print hashFairness(100, buckets)

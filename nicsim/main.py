@@ -28,28 +28,27 @@ from nic_sim import NicSim
 import sys
 
 if __name__ == "__main__":
-	if len(sys.argv) < 3:
-		print "usage: main <inputFileName> <outputFileName>"
-		exit(1)
-	else:
-		inputFileName = sys.argv[1]
-		outputFileName = sys.argv[2]
+    if len(sys.argv) < 3:
+        print "usage: main <inputFileName> <outputFileName>"
+        exit(1)
+    else:
+        inputFileName = sys.argv[1]
+        outputFileName = sys.argv[2]
 
-	nicSim = NicSim(100)
+    nicSim = NicSim(100)
 
-	inputFile = open(inputFileName,"r")
-	outputFile = open(outputFileName,"w")
+    inputFile = open(inputFileName,"r")
+    outputFile = open(outputFileName,"w")
 
-	c = 0
-	for eachLine in inputFile:
-		c+=1
-		print "#"+str(c) +": "+eachLine
-		outputList = nicSim.parseTrafficTableTrace(eachLine)
-		if type(outputList) == type([]): 
-			outputFile.writelines('\t'.join(outputList) +'\n')
+    c = 0
+    for eachLine in inputFile:
+        c+=1
+        print "#"+str(c) +": "+eachLine
+        outputList = nicSim.parseTrafficTableTrace(eachLine)
+        if type(outputList) == type([]):
+            outputFile.writelines('\t'.join(outputList) +'\n')
 
 
 
-	inputFile.close()
-	outputFile.close()
-
+    inputFile.close()
+    outputFile.close()

@@ -46,7 +46,7 @@ class Nic:
         """
         accepted = False
         reasonCode = []
-        
+
         #Get prefixes of the input name
         prefixes = getPrefixes(name)
         print "Prefixes of input name : ",prefixes
@@ -65,8 +65,4 @@ class Nic:
             accepted = True
             reasonCode += result
 
-        return accepted, reasonCode                        
-
-
-
-	
+        return accepted, reasonCode

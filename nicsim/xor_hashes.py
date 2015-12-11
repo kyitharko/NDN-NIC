@@ -25,59 +25,57 @@ ref paper: DEEP PACKET INSPECTION USING PARALLEL BLOOM FILTERS
 import random
 
 class XorHashes:
-	"""
-	Create a new XorHashes with multiple XOR hashes and a collection compute
-	functions
+    """
+    Create a new XorHashes with multiple XOR hashes and a collection compute
+    functions
 
-	:param int nHashes: the number of hashes the XorHashes contains
-	:param int m: the bound size m
-	"""
-	def __init__(self, nHashes, m):
-		#randomNumbers: nHashes sets of pre-determined random numbers for XorHashes
-		#suppose each set has 500*8 number of values
-		self.randomNumbers = {}
-		self.nHashes = nHashes
-		randomNumberSize = 500*8
+    :param int nHashes: the number of hashes the XorHashes contains
+    :param int m: the bound size m
+    """
+    def __init__(self, nHashes, m):
+        #randomNumbers: nHashes sets of pre-determined random numbers for XorHashes
+        #suppose each set has 500*8 number of values
+        self.randomNumbers = {}
+        self.nHashes = nHashes
+        randomNumberSize = 500*8
 
-		for i in range(nHashes):
-			self.randomNumbers[i] = []
-			for j in range(randomNumberSize):
-				self.randomNumbers[i].append(random.randint(0, m-1))
+        for i in range(nHashes):
+            self.randomNumbers[i] = []
+            for j in range(randomNumberSize):
+                self.randomNumbers[i].append(random.randint(0, m-1))
 
-	def XOR(self, randomNumbers, name):
-		"""
-		compute XOR hash value with input random numbers
+    def XOR(self, randomNumbers, name):
+        """
+        compute XOR hash value with input random numbers
 
-		:param list randomNumbers: a list of random numbers
-		:param string name: the name waiting to bu hashed
-		:return: h
-		:rtype: int
-		"""
-		randomIndex = 0
-		h = 0
+        :param list randomNumbers: a list of random numbers
+        :param string name: the name waiting to bu hashed
+        :return: h
+        :rtype: int
+        """
+        randomIndex = 0
+        h = 0
 
-		for c in name:
-			for i in range(8):
-				h ^= (1<<i)&ord(c)*randomNumbers[randomIndex]
-				randomIndex += 1
+        for c in name:
+            for i in range(8):
+                h ^= (1<<i)&ord(c)*randomNumbers[randomIndex]
+                randomIndex += 1
 
-		h ^= 0
+        h ^= 0
 
-		return h
-
-
-	def computeHashes(self, name):
-		"""
-		compute nHashes XOR hash values 
-
-		:param string name: the name waiting to bu hashed
-		:return: hashes
-		:rtype: list
-		"""
-		hashes = []
-		for i in range(self.nHashes):
-			hashes.append( self.XOR(self.randomNumbers[i], name) )
-
-		return hashes
+        return h
 
 
+    def computeHashes(self, name):
+        """
+        compute nHashes XOR hash values
+
+        :param string name: the name waiting to bu hashed
+        :return: hashes
+        :rtype: list
+        """
+        hashes = []
+        for i in range(self.nHashes):
+            hashes.append( self.XOR(self.randomNumbers[i], name) )
+
+        return hashes
