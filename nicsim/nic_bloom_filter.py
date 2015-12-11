@@ -17,25 +17,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
-
-"""
-This module defines simulation of NIC bloom filter
-"""
-
 from xor_hashes import XorHashes
 
 class NicBloomFilter:
     """
-    Create a new NIC bloom filter which contains both a counting bloom filter (list)
-    , a table (directory) and a new XorHashes
+    Bloom filter for NDN-NIC simulator.
+    This differs from a regular Bloom filter in that:
+    (1) keys are remembered in a table, so that NicBloomFilter can determine
+        whether a match in the regular Bloom filter is a false positive.
+    (2) each key is associated with one or more reason codes.
 
-    :param int mBuckets: the size of buckets
+    :param int mBuckets: number of buckets
     """
     def __init__(self, mBuckets):
         self.mBuckets = mBuckets
         self.buckets = [0] * mBuckets
         self.table = dict()
-        #default 3 hash functions
+        # default 3 hash functions
         self.xorHashes = XorHashes(3, mBuckets)
 
     def add(self, key, reasonCode):
@@ -46,60 +44,45 @@ class NicBloomFilter:
         :param string key: Uri format of name with "/"
         :param string reasonCode: the reason to insert the key (e.g., PIT, FIB, CS, etc.)
         """
-        # key is in Uri format
         hashes = self.xorHashes.computeHashes(key)
-        for eachHash in hashes:
-            self.buckets[eachHash % self.mBuckets] += 1
+        for h in hashes:
+            self.buckets[h % self.mBuckets] += 1
 
-        if key in self.table.keys():
-            self.table[key].append(reasonCode)
-        else:
-            self.table[key] = [reasonCode]
+        self.table.setdefault(key, []).append(reasonCode)
 
     def remove(self, key, reasonCode):
         """
         Remove a key from the counting bloom filter
         Remove (key, [reasonCode]) from the table
 
-        :param string key: Uri format of name with "/"
-        :param string reasonCode: the reason to insert the key (e.g., PIT, FIB, CS, etc.)
+        :param string key
+        :param string reasonCode: the reason to insert the key
         """
-        hashes = self.xorHashes.computeHashes(key)
-        for eachHash in hashes:
-            self.buckets[eachHash % self.mBuckets] -= 1
-
         if key not in self.table.keys():
             raise KeyError
-        else:
-            self.table[key].remove(reasonCode)
 
-            if self.table[key] == []:
-                self.table.pop(key)
+        self.table[key].remove(reasonCode)
+        if len(self.table[key]) == 0:
+            self.table.pop(key)
+
+        hashes = self.xorHashes.computeHashes(key)
+        for h in hashes:
+            self.buckets[h % self.mBuckets] -= 1
 
     def query(self, key):
         """
-        Query whether the key is in bloom filter and check if it is a FP
-        by checking the table
+        Query whether the key is in bloom filter and check if it is a false positive.
 
-        :param string key: Uri format of name with "/"
-        :return: reasonCode, False or "FP"
-        :rtype: bool or string
+        :param string key
+        :return: list of reasonCodes, False, or "FP"
         """
         hashes = self.xorHashes.computeHashes(key)
-        isInBuckets = True
 
-        for eachHash in hashes:
-            if self.buckets[eachHash % self.mBuckets] == 0:
-                isInBuckets = False
-                break
+        for h in hashes:
+            if self.buckets[h % self.mBuckets] == 0:
+                return False
 
-        if isInBuckets:
-            if key in self.table.keys():
-                return self.table[key]
-            else:
-                return "FP"
-        else:
-            return False
+        return self.table.get(key, "FP")
 
     def __str__(self):
-        return "Bloom Filter buckets: " + str(self.buckets) + "\nBloom Filter table: " + str(self.table) + '\n'
+        return "Bloom Filter buckets: %s\nBloom Filter table: %s\n" % (self.buckets, self.table)

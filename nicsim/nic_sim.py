@@ -40,7 +40,6 @@ class NicSim:
 
     def parseTrafficTableTrace(self, inputLine):
         inputList = inputLine.split("\t")
-        print "inputList : ", inputList
         traceType = inputList[1]
 
         outputList = []
@@ -51,7 +50,6 @@ class NicSim:
             packetName = inputList[3]
             accepted, reasonCode = self.nic.processPacket(packetType, packetName)
 
-            print accepted, reasonCode
             #strip \n from last component
             if "\n" in inputList[4]:
                 inputList[4] = inputList[4][:-1]
@@ -66,7 +64,6 @@ class NicSim:
             else:
                 outputList.append("DROP")
 
-            print "outputList ", outputList
             return outputList
 
         elif traceType == "INS":
@@ -82,9 +79,6 @@ class NicSim:
             elif tableName == "CS":
                 self.cs.insert(packetName)
 
-            print "   BF1", self.nic.bf1
-            print "\n   BF2", self.nic.bf2
-
         elif traceType == "DEL":
             tableName = inputList[2]
             packetName = inputList[3]
@@ -97,6 +91,3 @@ class NicSim:
                 self.fib.erase(packetName)
             elif tableName == "CS":
                 self.cs.erase(packetName)
-
-            print "   BF1", self.nic.bf1
-            print "\n   BF2", self.nic.bf2

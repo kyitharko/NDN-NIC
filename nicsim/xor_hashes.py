@@ -33,8 +33,8 @@ class XorHashes:
     :param int m: the bound size m
     """
     def __init__(self, nHashes, m):
-        #randomNumbers: nHashes sets of pre-determined random numbers for XorHashes
-        #suppose each set has 500*8 number of values
+        # randomNumbers: nHashes sets of pre-determined random numbers for XorHashes
+        # suppose each set has 500*8 number of values
         self.randomNumbers = {}
         self.nHashes = nHashes
         randomNumberSize = 500 * 8
@@ -44,12 +44,13 @@ class XorHashes:
             for j in range(randomNumberSize):
                 self.randomNumbers[i].append(random.randint(0, m-1))
 
-    def XOR(self, randomNumbers, name):
+    @staticmethod
+    def XOR(randomNumbers, name):
         """
         compute XOR hash value with input random numbers
 
         :param list randomNumbers: a list of random numbers
-        :param string name: the name waiting to bu hashed
+        :param string name: the name to be hashed
         :return: h
         :rtype: int
         """

@@ -17,16 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
-"""
-This module defines simulation of NIC with two bloom filters
-"""
-
 from nic_bloom_filter import NicBloomFilter
 from utility import getPrefixes
 
 class Nic:
     """
-    Create a new NIC which contains two nic bloom filters
+    Simulates NDN-NIC hardware.
     """
 
     def __init__(self, mBuckets):
@@ -40,7 +36,7 @@ class Nic:
         :param string netType: network layer type of the packet; possible values are:
                                 * **I**: Interest
                                 * **D**: Data
-        :param string name: Uri format of name with "/"
+        :param string name: Interest or Data Name
         :return: accepted, reasonCode
         :rtype: bool, string
         """
@@ -49,17 +45,15 @@ class Nic:
 
         # get prefixes of the input name
         prefixes = getPrefixes(name)
-        print "Prefixes of input name : ", prefixes
 
-        # check each prefix in bf1 - PIT, FIB, part CS
+        # BF1 prefix match
         for prefix in prefixes:
             result = self.bf1.query(prefix)
-            print "nic - processPacket: ", prefix, result
             if result != False:
                 accepted = True
                 reasonCode += result
 
-        # check the exact name in bf2 - CS
+        # BF2 exact match
         result = self.bf2.query(name)
         if result != False:
             accepted = True
