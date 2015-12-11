@@ -24,23 +24,28 @@ class Nic:
     """
     Simulates NDN-NIC hardware.
     """
+    @staticmethod
+    def __makeBloomFilter(bf):
+        if isinstance(bf, NicBloomFilter):
+            return bf
+        elif type(bf) == int:
+            return NicBloomFilter(bf)
+        else:
+            raise TypeError("unexpected type for Bloom filter")
 
-    def __init__(self, mBuckets):
-        self.bf1 = NicBloomFilter(mBuckets)
-        self.bf2 = NicBloomFilter(mBuckets)
+    def __init__(self, bf1, bf2):
+        self.bf1 = Nic.__makeBloomFilter(bf1)
+        self.bf2 = Nic.__makeBloomFilter(bf2)
 
     def processPacket(self, netType, name):
         """
-        Process packet log line
+        Determine whether to accept or drop a packet.
 
-        :param string netType: network layer type of the packet; possible values are:
-                                * **I**: Interest
-                                * **D**: Data
+        :param string netType: network layer type of the packet, either I or D
         :param string name: Interest or Data Name
-        :return: accepted, reasonCode
-        :rtype: bool, string
+        :return: accepted, reasonCodes
+        :rtype: bool, list of strings
         """
-        accepted = False
         reasonCodes = []
 
         # get prefixes of the input name
@@ -52,10 +57,8 @@ class Nic:
             if result1 == False:
                 pass
             elif result1 == "FP":
-                accepted = True
                 reasonCodes += ["FP1"]
             else:
-                accepted = True
                 reasonCodes += result1
 
         # BF2 exact match
@@ -63,10 +66,8 @@ class Nic:
         if result2 == False:
             pass
         elif result2 == "FP":
-            accepted = True
             reasonCodes += ["FP2"]
         else:
-            accepted = True
             reasonCodes += result2
 
-        return accepted, reasonCodes
+        return len(reasonCodes) > 0, reasonCodes

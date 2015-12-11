@@ -33,7 +33,7 @@ class NicSim:
     :param int mBuckets: the size of buckets
     """
     def __init__(self, mBuckets):
-        self.nic = Nic(mBuckets)
+        self.nic = Nic(mBuckets, mBuckets)
         self.fib = Fib(self.nic)
         self.pit = Pit(self.nic)
         self.cs = Cs(self.nic)
