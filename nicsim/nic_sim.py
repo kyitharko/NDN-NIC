@@ -24,7 +24,7 @@ three tables (PIT, FIB, and CS)
 """
 
 from nic import Nic
-from tables import Pit, Fib, Cs
+from table import Fib, Pit, Cs
 
 class NicSim:
     """
@@ -34,8 +34,8 @@ class NicSim:
     """
     def __init__(self, mBuckets):
         self.nic = Nic(mBuckets)
-        self.pit = Pit(self.nic)
         self.fib = Fib(self.nic)
+        self.pit = Pit(self.nic)
         self.cs = Cs(self.nic)
 
     def parseTrafficTableTrace(self, inputLine):
@@ -72,10 +72,10 @@ class NicSim:
             if "\n" in packetName:
                 packetName = packetName[:-1]
 
-            if tableName == "PIT":
-                self.pit.insert(packetName)
-            elif tableName == "FIB":
+            if tableName == "FIB":
                 self.fib.insert(packetName)
+            elif tableName == "PIT":
+                self.pit.insert(packetName)
             elif tableName == "CS":
                 self.cs.insert(packetName)
 
@@ -85,9 +85,9 @@ class NicSim:
             if "\n" in packetName:
                 packetName = packetName[:-1]
 
-            if tableName == "PIT":
-                self.pit.erase(packetName)
-            elif tableName == "FIB":
+            if tableName == "FIB":
                 self.fib.erase(packetName)
+            elif tableName == "PIT":
+                self.pit.erase(packetName)
             elif tableName == "CS":
                 self.cs.erase(packetName)

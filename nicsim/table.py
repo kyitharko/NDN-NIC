@@ -17,24 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
-
-"""
-This module defines three tables PIT, FIB, and CS
-"""
 from utility import getPrefixes
 
-class Pit:
-    def __init__(self, nic):
-        self.nic = nic
-
-    def insert(self, prefix):
-        self.nic.bf1.add(prefix, "PIT1")
-
-    def erase(self, prefix):
-        self.nic.bf1.remove(prefix, "PIT1")
-
-
-class Fib:
+class NaiveFib:
     def __init__(self, nic):
         self.nic = nic
 
@@ -44,7 +29,17 @@ class Fib:
     def erase(self, prefix):
         self.nic.bf1.remove(prefix, "FIB1")
 
-class Cs:
+class NaivePit:
+    def __init__(self, nic):
+        self.nic = nic
+
+    def insert(self, prefix):
+        self.nic.bf1.add(prefix, "PIT1")
+
+    def erase(self, prefix):
+        self.nic.bf1.remove(prefix, "PIT1")
+
+class NaiveCs:
     def __init__(self, nic):
         self.nic = nic
 
@@ -57,3 +52,7 @@ class Cs:
         prefixes = getPrefixes(name)
         for prefix in prefixes:
             self.nic.bf2.remove(prefix, "CS2")
+
+Fib = NaiveFib
+Pit = NaivePit
+Cs = NaiveCs
