@@ -41,22 +41,32 @@ class Nic:
         :rtype: bool, string
         """
         accepted = False
-        reasonCode = []
+        reasonCodes = []
 
         # get prefixes of the input name
         prefixes = getPrefixes(name)
 
         # BF1 prefix match
         for prefix in prefixes:
-            result = self.bf1.query(prefix)
-            if result != False:
+            result1 = self.bf1.query(prefix)
+            if result1 == False:
+                pass
+            elif result1 == "FP":
                 accepted = True
-                reasonCode += result
+                reasonCodes += ["FP1"]
+            else:
+                accepted = True
+                reasonCodes += result1
 
         # BF2 exact match
-        result = self.bf2.query(name)
-        if result != False:
+        result2 = self.bf2.query(name)
+        if result2 == False:
+            pass
+        elif result2 == "FP":
             accepted = True
-            reasonCode += result
+            reasonCodes += ["FP2"]
+        else:
+            accepted = True
+            reasonCodes += result2
 
-        return accepted, reasonCode
+        return accepted, reasonCodes
