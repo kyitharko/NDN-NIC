@@ -21,48 +21,33 @@ import unittest as ut
 from nic_bloom_filter import NicBloomFilter
 
 class NicBloomFilterTestCase(ut.TestCase):
-    """
-    Test for NicBloomFilter
-    """
+    def setUp(self):
+        self.bf = NicBloomFilter(128)
 
-    def setup(self):
-        self.NBF = NicBloomFilter(100)
+    def test_simple(self):
+        self.bf.add("/A", "PIT1")
+        self.bf.add("/C/1", "PIT1")
+        self.bf.add("/C/1", "PIT1")
+        self.assertEqual(self.bf.query("/A"), ["PIT1"])
+        self.assertEqual(self.bf.query("/B"), False)
+        self.assertEqual(self.bf.query("/C/1"), ["PIT1", "PIT1"])
 
-    def test_add_query_true(self):
+    def test_remove(self):
+        self.bf.add("/A", "PIT1")
+        self.bf.add("/A", "PIT1")
+        self.bf.remove("/A", "PIT1")
+        self.assertEqual(self.bf.query("/A"), ["PIT1"])
+        self.bf.remove("/A", "PIT1")
+        self.assertEqual(self.bf.query("/A"), False)
+
+    def test_fp(self):
         """
-        Add ("/ndn/test","PIT) into NicBloomFilter
-        and make a query of "/ndn/test"
+        Saturate the Bloom filter,
+        and lookup a diffent key expecting a false positive
         """
-
-        NBF = NicBloomFilter(100)
-        NBF.add("/A", "PIT")
-        NBF.add("/C/1", "PIT")
-        result = NBF.query("/C/1")
-        self.assertTrue(result, "Query result is invalid")
-
-    def test_add_query_false(self):
-        """
-        Add ("/ndn/test","PIT) into NicBloomFilter
-        and make a query of "/ndn/test1"
-        """
-
-        NBF = NicBloomFilter(100)
-        NBF.add("/ndn/test", "PIT")
-        result = NBF.query("/ndn/test1")
-        self.assertFalse(result, "Query result is invalid")
-
-    def test_add_query_FP(self):
-        """
-        Add multiple keys into NicBloomFilter to achieve FP
-        and make a query of diffent key with FP
-        """
-
-        NBF = NicBloomFilter(100)
-        for i in range(200):
-            NBF.add(str(i), "PIT")
-        result = NBF.query("300")
-        self.assertEqual(result, "FP", "Query result is invalid")
-
+        for i in range(1024):
+            self.bf.add(str(i), "PIT1")
+        self.assertEqual(self.bf.query("x"), "FP")
 
 if __name__ == '__main__':
     ut.main(verbosity=2)

@@ -112,7 +112,7 @@ class XorHashes:
         :param int maxInputSize: maximum size of input hash functions can accomodate
         """
         xhs = XorHashes([])
-        xhs.functions = [ XorHash.create(maxInputSize, m) for i in range(nFunctions) ]
+        xhs.functions = [ XorHash.create(m, maxInputSize) for i in range(nFunctions) ]
         return xhs
 
 if __name__ == "__main__":

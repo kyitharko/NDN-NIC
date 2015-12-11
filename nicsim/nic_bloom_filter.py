@@ -17,72 +17,70 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
-from xor_hashes import XorHashes
-
 class NicBloomFilter:
     """
     Bloom filter for NDN-NIC simulator.
-    This differs from a regular Bloom filter in that:
-    (1) keys are remembered in a table, so that NicBloomFilter can determine
+
+    This extends a regular Bloom filter:
+    (1) keys are records in a table, so that NicBloomFilter can determine
         whether a match in the regular Bloom filter is a false positive.
     (2) each key is associated with one or more reason codes.
 
-    :param int mBuckets: number of buckets
+    :param int m: number of buckets
+    :param hasher: a function that computes a vector of hashes in [0,m) range for a key
     """
-    def __init__(self, mBuckets):
-        self.mBuckets = mBuckets
-        self.buckets = [0] * mBuckets
+    def __init__(self, m, hasher=None):
+        self.m = m
+        self.buckets = [0] * m
         self.table = dict()
-        # default 3 hash functions
-        self.xorHashes = XorHashes.create(3, mBuckets)
+        if hasher is None:
+            from xor_hashes import XorHashes
+            self.hasher = XorHashes.create(3, m)
+        else:
+            self.hasher = hasher
 
     def add(self, key, reasonCode):
         """
-        Add a key to the counting bloom filter
-        Add (key, [reasonCode]) to the table (Append the list)
+        Add a key with a reason code
 
         :param string key: Uri format of name with "/"
-        :param string reasonCode: the reason to insert the key (e.g., PIT, FIB, CS, etc.)
+        :param string reasonCode: a reason code; may repeat
         """
-        hashes = self.xorHashes(key)
-        for h in hashes:
-            self.buckets[h % self.mBuckets] += 1
-
         self.table.setdefault(key, []).append(reasonCode)
+
+        hashes = self.hasher(key)
+        for h in hashes:
+            self.buckets[h] += 1
 
     def remove(self, key, reasonCode):
         """
-        Remove a key from the counting bloom filter
-        Remove (key, [reasonCode]) from the table
+        Remove a key with a reason code
 
         :param string key
         :param string reasonCode: the reason to insert the key
         """
-        if key not in self.table.keys():
+        if key not in self.table:
             raise KeyError
 
-        self.table[key].remove(reasonCode)
-        if len(self.table[key]) == 0:
+        reasonCodes = self.table[key]
+        reasonCodes.remove(reasonCode)
+        if len(reasonCodes) == 0:
             self.table.pop(key)
 
-        hashes = self.xorHashes(key)
+        hashes = self.hasher(key)
         for h in hashes:
-            self.buckets[h % self.mBuckets] -= 1
+            self.buckets[h] -= 1
 
     def query(self, key):
         """
-        Query whether the key is in bloom filter and check if it is a false positive.
+        Lookup a key with its reason codes
 
         :param string key
-        :return: list of reasonCodes, False, or "FP"
+        :return: list of reasonCodes if key exists, False if key does not exist,
+                 or "FP" if key exists in Bloom filter due to false positive
         """
-        hashes = self.xorHashes(key)
-
-        for h in hashes:
-            if self.buckets[h % self.mBuckets] == 0:
-                return False
+        hashes = self.hasher(key)
+        if not all([self.buckets[h] for h in hashes]):
+            return False
 
         return self.table.get(key, "FP")
-
-    def __str__(self):
-        return "Bloom Filter buckets: %s\nBloom Filter table: %s\n" % (self.buckets, self.table)

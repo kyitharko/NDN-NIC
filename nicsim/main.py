@@ -26,7 +26,7 @@ from nic_sim import NicSim
 import sys
 
 if __name__ == "__main__":
-    nicSim = NicSim(mBuckets=100)
+    nicSim = NicSim(mBuckets=128)
 
     for line in sys.stdin:
         outputList = nicSim.parseTrafficTableTrace(line)
