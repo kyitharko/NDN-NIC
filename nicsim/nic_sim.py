@@ -17,77 +17,77 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
-
-"""
-This module defines simulation of NDN-NIC, which contains a NIC simulator and
-three tables (PIT, FIB, and CS)
-"""
-
 from nic import Nic
-from table import Fib, Pit, Cs
+from table import NaiveFib, NaivePit, NaiveCs
 
 class NicSim:
     """
-    Create a new NIC simulator which contains both a nic and three tables
-
-    :param int mBuckets: the size of buckets
+    The NDN-NIC simulator.
+    This class simulates a hardware NDN-NIC and its corresponding software portion.
     """
-    def __init__(self, mBuckets):
-        self.nic = Nic(mBuckets, mBuckets)
-        self.fib = Fib(self.nic)
-        self.pit = Pit(self.nic)
-        self.cs = Cs(self.nic)
+    def __init__(self, nic, fib=NaiveFib, pit=NaivePit, cs=NaiveCs):
+        """
+        Constructor.
 
-    def parseTrafficTableTrace(self, inputLine):
-        inputList = inputLine.split("\t")
-        traceType = inputList[1]
+        :param Nic nic: an NDN-NIC hardware simulator
+        :param fib: FIB constructor or instance
+        :param pit: PIT constructor or instance
+        :param cs: CS constructor or instance
+        """
+        if not isinstance(nic, Nic):
+            raise TypeError("unexpected type for Nic")
+        self.nic = nic
 
-        outputList = []
-
-        if traceType == "PKT":
-            #processing pakcet trace
-            packetType = inputList[2]
-            packetName = inputList[3]
-            accepted, reasonCode = self.nic.processPacket(packetType, packetName)
-
-            #strip \n from last component
-            if "\n" in inputList[4]:
-                inputList[4] = inputList[4][:-1]
-
-            outputList.append(inputList[0])
-            outputList.append(inputList[2])
-            outputList.append(inputList[3])
-            outputList.append(inputList[4])
-
-            if accepted:
-                outputList.append(",".join(reasonCode))
+        def makeTable(tableName, table):
+            import inspect
+            if inspect.isclass(table):
+                return table(nic)
+            elif hasattr(table, "insert") and hasattr(table, "erase") and \
+                 table.insert.im_self is not None:
+                return table
             else:
-                outputList.append("DROP")
+                raise TypeError("unexpected type for %s" % tableName)
 
-            return outputList
+        self.fib = makeTable("FIB", fib)
+        self.pit = makeTable("PIT", pit)
+        self.cs = makeTable("CS", cs)
 
-        elif traceType == "INS":
-            tableName = inputList[2]
-            packetName = inputList[3]
-            if "\n" in packetName:
-                packetName = packetName[:-1]
+    def processPacketArrival(self, timestamp, _pkt, netType, name, swDecision):
+        """
+        Process a packet arrival line from Traffic and Table Trace.
+        """
+        accepted, reasonCodes = self.nic.processPacket(netType, name)
 
-            if tableName == "FIB":
-                self.fib.insert(packetName)
-            elif tableName == "PIT":
-                self.pit.insert(packetName)
-            elif tableName == "CS":
-                self.cs.insert(packetName)
+        if accepted:
+            return ",".join(reasonCodes)
+        else:
+            return "DROP"
 
-        elif traceType == "DEL":
-            tableName = inputList[2]
-            packetName = inputList[3]
-            if "\n" in packetName:
-                packetName = packetName[:-1]
+    def processTableChange(self, timestamp, act, table, name):
+        """
+        Process a table change line from Traffic and Table Trace.
+        """
+        tbl = getattr(self, table.lower())
+        func = {"INS": "insert", "DEL": "erase"}[act]
+        getattr(tbl, func)(name)
 
-            if tableName == "FIB":
-                self.fib.erase(packetName)
-            elif tableName == "PIT":
-                self.pit.erase(packetName)
-            elif tableName == "CS":
-                self.cs.erase(packetName)
+    def processTtt(self, inFile, outFile):
+        """
+        Process a Traffic and Table Trace file.
+        """
+        for line in inFile:
+            columns = line.rstrip().split("\t")
+            if len(columns) == 5 and columns[1] == "PKT":
+                decision = self.processPacketArrival(*columns)
+                del columns[1]
+                columns.append(decision)
+                print >>outFile, "\t".join(columns)
+            elif len(columns) == 4:
+                self.processTableChange(*columns)
+
+if __name__ == "__main__":
+    nic = Nic(128, 128)
+    nicSim = NicSim(nic)
+
+    import sys
+    nicSim.processTtt(sys.stdin, sys.stdout)

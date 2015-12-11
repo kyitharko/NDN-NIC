@@ -21,38 +21,37 @@ from utility import getPrefixes
 
 class NaiveFib:
     def __init__(self, nic):
-        self.nic = nic
+        self.bf1 = nic.bf1
+        self.bf2 = nic.bf2
 
-    def insert(self, prefix):
-        self.nic.bf1.add(prefix, "FIB1")
+    def insert(self, name):
+        self.bf1.add(name, "FIB1")
 
-    def erase(self, prefix):
-        self.nic.bf1.remove(prefix, "FIB1")
+    def erase(self, name):
+        self.bf1.remove(name, "FIB1")
 
 class NaivePit:
     def __init__(self, nic):
-        self.nic = nic
+        self.bf1 = nic.bf1
+        self.bf2 = nic.bf2
 
-    def insert(self, prefix):
-        self.nic.bf1.add(prefix, "PIT1")
+    def insert(self, name):
+        self.bf1.add(name, "PIT1")
 
-    def erase(self, prefix):
-        self.nic.bf1.remove(prefix, "PIT1")
+    def erase(self, name):
+        self.bf1.remove(name, "PIT1")
 
 class NaiveCs:
     def __init__(self, nic):
-        self.nic = nic
+        self.bf1 = nic.bf1
+        self.bf2 = nic.bf2
 
     def insert(self, name):
         prefixes = getPrefixes(name)
         for prefix in prefixes:
-            self.nic.bf2.add(prefix, "CS2")
+            self.bf2.add(prefix, "CS2")
 
     def erase(self, name):
         prefixes = getPrefixes(name)
         for prefix in prefixes:
-            self.nic.bf2.remove(prefix, "CS2")
-
-Fib = NaiveFib
-Pit = NaivePit
-Cs = NaiveCs
+            self.bf2.remove(prefix, "CS2")
