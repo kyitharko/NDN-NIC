@@ -26,7 +26,7 @@ def getPrefixes(name):
     prefixes = ['/']
     components = name.split('/')
 
-    for i in range(2,len(components)+1):
+    for i in range(2, len(components) + 1):
         prefix = '/'.join(components[:i])
         prefixes.append(prefix)
 

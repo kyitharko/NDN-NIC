@@ -66,7 +66,7 @@ class NicSim:
             else:
                 outputList.append("DROP")
 
-            print "outputList ",outputList
+            print "outputList ", outputList
             return outputList
 
         elif traceType == "INS":

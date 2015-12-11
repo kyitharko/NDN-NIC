@@ -33,14 +33,14 @@ def hashFairness(n, bucketList):
     for bucket in bucketList:
         total += bucket * bucket
 
-    return n*n*1.0/m/total
+    return n * n * 1.0 / m / total
 
 
 from xor_hashes import XorHashes
 
 if __name__ == '__main__':
     xorHashes = XorHashes(1,100)
-    buckets = [0]*1000
+    buckets = [0] * 1000
     for i in range(100):
         hs = xorHashes.computeHashes(str(i))
         print hs[0]

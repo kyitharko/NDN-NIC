@@ -102,4 +102,4 @@ class NicBloomFilter:
             return False
 
     def __str__(self):
-        return "Bloom Filter buckets: "+str(self.buckets)+"\nBloom Filter table: "+str(self.table)+'\n'
+        return "Bloom Filter buckets: " + str(self.buckets) + "\nBloom Filter table: " + str(self.table) + '\n'

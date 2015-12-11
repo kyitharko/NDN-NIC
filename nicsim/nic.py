@@ -47,11 +47,11 @@ class Nic:
         accepted = False
         reasonCode = []
 
-        #Get prefixes of the input name
+        # get prefixes of the input name
         prefixes = getPrefixes(name)
-        print "Prefixes of input name : ",prefixes
+        print "Prefixes of input name : ", prefixes
 
-        #check each prefix in bf1 - PIT, FIB, part CS
+        # check each prefix in bf1 - PIT, FIB, part CS
         for prefix in prefixes:
             result = self.bf1.query(prefix)
             print "nic - processPacket: ", prefix, result
@@ -59,7 +59,7 @@ class Nic:
                 accepted = True
                 reasonCode += result
 
-        #check the exact name in bf2 - CS
+        # check the exact name in bf2 - CS
         result = self.bf2.query(name)
         if result != False:
             accepted = True

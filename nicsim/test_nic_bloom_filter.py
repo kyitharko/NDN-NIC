@@ -35,8 +35,8 @@ class NicBloomFilterTestCase(ut.TestCase):
         """
 
         NBF = NicBloomFilter(100)
-        NBF.add("/A","PIT")
-        NBF.add("/C/1","PIT")
+        NBF.add("/A", "PIT")
+        NBF.add("/C/1", "PIT")
         result = NBF.query("/C/1")
         self.assertTrue(result, "Query result is invalid")
 
@@ -47,7 +47,7 @@ class NicBloomFilterTestCase(ut.TestCase):
         """
 
         NBF = NicBloomFilter(100)
-        NBF.add("/ndn/test","PIT")
+        NBF.add("/ndn/test", "PIT")
         result = NBF.query("/ndn/test1")
         self.assertFalse(result, "Query result is invalid")
 
@@ -59,9 +59,9 @@ class NicBloomFilterTestCase(ut.TestCase):
 
         NBF = NicBloomFilter(100)
         for i in range(200):
-            NBF.add(str(i),"PIT")
+            NBF.add(str(i), "PIT")
         result = NBF.query("300")
-        self.assertEqual(result,"FP", "Query result is invalid")
+        self.assertEqual(result, "FP", "Query result is invalid")
 
 
 if __name__ == '__main__':

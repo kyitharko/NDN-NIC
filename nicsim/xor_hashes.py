@@ -37,7 +37,7 @@ class XorHashes:
         #suppose each set has 500*8 number of values
         self.randomNumbers = {}
         self.nHashes = nHashes
-        randomNumberSize = 500*8
+        randomNumberSize = 500 * 8
 
         for i in range(nHashes):
             self.randomNumbers[i] = []
@@ -58,7 +58,7 @@ class XorHashes:
 
         for c in name:
             for i in range(8):
-                h ^= (1<<i)&ord(c)*randomNumbers[randomIndex]
+                h ^= (1<<i) & ord(c) * randomNumbers[randomIndex]
                 randomIndex += 1
 
         h ^= 0
@@ -76,6 +76,6 @@ class XorHashes:
         """
         hashes = []
         for i in range(self.nHashes):
-            hashes.append( self.XOR(self.randomNumbers[i], name) )
+            hashes.append(self.XOR(self.randomNumbers[i], name))
 
         return hashes

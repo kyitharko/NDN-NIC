@@ -37,18 +37,16 @@ if __name__ == "__main__":
 
     nicSim = NicSim(100)
 
-    inputFile = open(inputFileName,"r")
-    outputFile = open(outputFileName,"w")
+    inputFile = open(inputFileName, "r")
+    outputFile = open(outputFileName, "w")
 
     c = 0
     for eachLine in inputFile:
         c+=1
-        print "#"+str(c) +": "+eachLine
+        print "#" + str(c) + ": " + eachLine
         outputList = nicSim.parseTrafficTableTrace(eachLine)
         if type(outputList) == type([]):
-            outputFile.writelines('\t'.join(outputList) +'\n')
-
-
+            outputFile.writelines('\t'.join(outputList) + '\n')
 
     inputFile.close()
     outputFile.close()
