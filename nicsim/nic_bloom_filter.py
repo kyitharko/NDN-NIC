@@ -34,7 +34,7 @@ class NicBloomFilter:
         self.buckets = [0] * mBuckets
         self.table = dict()
         # default 3 hash functions
-        self.xorHashes = XorHashes(3, mBuckets)
+        self.xorHashes = XorHashes.create(3, mBuckets)
 
     def add(self, key, reasonCode):
         """
@@ -44,7 +44,7 @@ class NicBloomFilter:
         :param string key: Uri format of name with "/"
         :param string reasonCode: the reason to insert the key (e.g., PIT, FIB, CS, etc.)
         """
-        hashes = self.xorHashes.computeHashes(key)
+        hashes = self.xorHashes(key)
         for h in hashes:
             self.buckets[h % self.mBuckets] += 1
 
@@ -65,7 +65,7 @@ class NicBloomFilter:
         if len(self.table[key]) == 0:
             self.table.pop(key)
 
-        hashes = self.xorHashes.computeHashes(key)
+        hashes = self.xorHashes(key)
         for h in hashes:
             self.buckets[h % self.mBuckets] -= 1
 
@@ -76,7 +76,7 @@ class NicBloomFilter:
         :param string key
         :return: list of reasonCodes, False, or "FP"
         """
-        hashes = self.xorHashes.computeHashes(key)
+        hashes = self.xorHashes(key)
 
         for h in hashes:
             if self.buckets[h % self.mBuckets] == 0:

@@ -24,59 +24,107 @@ ref paper: DEEP PACKET INSPECTION USING PARALLEL BLOOM FILTERS
 """
 import random
 
-class XorHashes:
+class XorHash:
     """
-    Create a new XorHashes with multiple XOR hashes and a collection compute
-    functions
+    Defines an XOR-based hash function.
 
-    :param int nHashes: the number of hashes the XorHashes contains
-    :param int m: the bound size m
+    Reference: M. Ramakrishna, E. Fu, and E. Bahcekapili,
+    "A Performance Study of Hashing Functions for Hardware Applications,"
+    Proc. 6th Int'l Conf. Computing and Information, 1994
     """
-    def __init__(self, nHashes, m):
-        # randomNumbers: nHashes sets of pre-determined random numbers for XorHashes
-        # suppose each set has 500*8 number of values
-        self.randomNumbers = {}
-        self.nHashes = nHashes
-        randomNumberSize = 500 * 8
+    BITMASKS = [ 1<<bit for bit in range(8) ]
 
-        for i in range(nHashes):
-            self.randomNumbers[i] = []
-            for j in range(randomNumberSize):
-                self.randomNumbers[i].append(random.randint(0, m-1))
-
-    @staticmethod
-    def XOR(randomNumbers, name):
+    def __init__(self, vector):
         """
-        compute XOR hash value with input random numbers
+        Construct an XOR-based hash function.
 
-        :param list randomNumbers: a list of random numbers
-        :param string name: the name to be hashed
-        :return: h
-        :rtype: int
+        :param vector list of pre-determined random numbers
         """
-        randomIndex = 0
+        self.vector = vector
+
+    def __repr__(self):
+        return "XorHash(%s)" % self.vector
+
+    def __call__(self, s):
+        """
+        Compute hash value.
+
+        :param str s: input string
+        :return a hash value
+        :rtype int
+        """
         h = 0
+        j = 0
 
-        for c in name:
-            for i in range(8):
-                h ^= (1<<i) & ord(c) * randomNumbers[randomIndex]
-                randomIndex += 1
-
-        h ^= 0
+        for char in s:
+            c = ord(char)
+            for bit in self.BITMASKS:
+                if bit & c != 0:
+                    h ^= self.vector[j]
+                j += 1
 
         return h
 
-
-    def computeHashes(self, name):
+    @staticmethod
+    def create(m, maxInputSize=500):
         """
-        compute nHashes XOR hash values
+        Create a random XorHash.
 
-        :param string name: the name waiting to bu hashed
-        :return: hashes
-        :rtype: list
+        :param int m: exclusive upper bound of hash value; should be power of 2
+        :param int maxInputSize: maximum size of input this hash function can accomodate
         """
-        hashes = []
-        for i in range(self.nHashes):
-            hashes.append(self.XOR(self.randomNumbers[i], name))
+        import random
+        vector = [ random.randint(0, m-1) for j in range(maxInputSize * 8) ]
+        return XorHash(vector)
 
-        return hashes
+class XorHashes:
+    """
+    Defines a group of XOR-based hash functions.
+    """
+    def __init__(self, vectors):
+        """
+        Construct a group of XOR-based hash functions.
+
+        :param vectors list of term vectors
+        """
+        self.functions = [ XorHash(vector) for vector in vectors ]
+
+    def __repr__(self):
+        return 'XorHashes(%s)' % [ f.vector for f in self.functions ]
+
+    def __call__(self, s):
+        """
+        Compute hash values.
+
+        :param str s: input string
+        :return hash values
+        :rtype list of int
+        """
+        return [ f(s) for f in self.functions ]
+
+    @staticmethod
+    def create(nFunctions, m, maxInputSize=500):
+        """
+        Create a group of random XorHashes.
+
+        :param int nFunctions: number of hash functions
+        :param int m: exclusive upper bound of hash value; should be power of 2
+        :param int maxInputSize: maximum size of input hash functions can accomodate
+        """
+        xhs = XorHashes([])
+        xhs.functions = [ XorHash.create(maxInputSize, m) for i in range(nFunctions) ]
+        return xhs
+
+if __name__ == "__main__":
+    TEST_INPUTS = ["/A/1", "/A/2", "/B/1", "/B/2"]
+
+    print "Random hash vectors."
+    xhs = XorHashes.create(3, 1<<16)
+    for INPUT in TEST_INPUTS:
+        print INPUT, xhs(INPUT)
+
+    print "Fixed hash vectors."
+    xhs1 = XorHashes([list(range(0, 200)), list(range(200, 400)), list(range(400, 600)), list(range(600, 800))])
+    xhs2 = XorHashes([list(range(0, 200)), list(range(200, 400)), list(range(400, 600)), list(range(600, 800))])
+    for INPUT in TEST_INPUTS:
+        print INPUT, xhs1(INPUT), xhs2(INPUT)

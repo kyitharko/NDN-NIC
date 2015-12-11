@@ -39,10 +39,10 @@ def hashFairness(n, bucketList):
 from xor_hashes import XorHashes
 
 if __name__ == '__main__':
-    xorHashes = XorHashes(1,100)
+    xorHashes = XorHashes.create(1,100)
     buckets = [0] * 1000
     for i in range(100):
-        hs = xorHashes.computeHashes(str(i))
+        hs = xorHashes(str(i))
         print hs[0]
         buckets[hs[0] % 100] += 1
 
