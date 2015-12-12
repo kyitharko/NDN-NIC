@@ -38,6 +38,7 @@ while read -r -a SIZES; do
 
   awk '
   BEGIN {
+    FS = OFS = "\t"
     totalNicAccepts = 0
     totalFalsePositives = 0
   }
