@@ -1,16 +1,15 @@
 #!/bin/bash
 # Run simulation on *.ttt.tsv with one set of parameters, and do analysis.
-# Usage: ./one.sh <key> <params>
-# Output files are named with <key>.
-# <params> are passed to nicsim.py.
+# Usage: ./one.sh key params..
+#   key: prefix of output file names
+#   params: passed to nicsim.py
 
-NDNNIC_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
-NICSIM_PY=$NDNNIC_ROOT/nicsim/nicsim.py
+R="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 
 KEY=$1
 if [[ -z $KEY ]]; then
-  echo 'Usage: ./one.sh <key> <params>'
-  exit 1
+  echo 'Usage: ./one.sh key params..'
+  exit 2
 fi
 shift
 
@@ -30,7 +29,7 @@ shift
 ) > $KEY.analyze.tsv
 
 for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
-  python2 $NICSIM_PY "$@" < $H.ttt.tsv > $KEY.$H.nd.tsv
+  python2 $R/nicsim/nicsim.py "$@" < $H.ttt.tsv > $KEY.$H.nd.tsv
 
   echo -n $H
   echo -ne '\t'
@@ -45,3 +44,5 @@ for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
   echo -n $(awk '$4!="DROP" && $5=="DROP"' $KEY.$H.nd.tsv | wc -l)
   echo
 done >> $KEY.analyze.tsv
+
+column -t $KEY.analyze.tsv
