@@ -28,7 +28,7 @@ class Nic:
     def __makeBloomFilter(bf):
         if isinstance(bf, NicBloomFilter):
             return bf
-        elif type(bf) == int:
+        elif isinstance(bf, (int, long)):
             return NicBloomFilter(bf)
         else:
             raise TypeError("unexpected type for Bloom filter")

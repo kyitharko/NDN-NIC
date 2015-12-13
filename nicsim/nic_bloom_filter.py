@@ -26,19 +26,32 @@ class NicBloomFilter:
         whether a match in the regular Bloom filter is a false positive.
     (2) each key is associated with one or more reason codes.
 
-    :param int m: number of buckets
-    :param hasher: a function that computes a vector of hashes in [0,m) range for a key
     """
+    @staticmethod
+    def __makeHasher(hasher, m):
+        from hash_function import HashGroup, HmacHash
+        if isinstance(hasher, HashGroup):
+            return hasher
+        elif isinstance(hasher, (int, long)):
+            return HashGroup([ HmacHash.create(m) for i in range(hasher) ])
+        elif hasher is None:
+            return HashGroup([ HmacHash.create(m) for i in range(3) ])
+        else:
+            raise TypeError("unexpected type for Bloom filter")
+
     def __init__(self, m, hasher=None):
+        """
+        Constructor.
+
+        :param int m: number of buckets
+        :param hasher: a HashGroup that computes a vector of hashes in [0,m) range for a key,
+                       or an int to create a HashGroup with that many random HmacHash functions,
+                       or None to create a HashGroup with 3 random HmacHash functions
+        """
         self.m = m
         self.buckets = [0] * m
         self.table = dict()
-
-        if hasher is None or type(hasher) == int:
-            from xor_hashes import XorHashes
-            nHashFunctions = 3 if hasher is None else hasher
-            hasher = XorHashes.create(nHashFunctions, m)
-        self.hasher = hasher
+        self.hasher = NicBloomFilter.__makeHasher(hasher, m)
 
     def add(self, key, reasonCode):
         """

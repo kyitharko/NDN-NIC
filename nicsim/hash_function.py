@@ -17,12 +17,52 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
-"""
-This module defines XOR hash function
+class HmacHash:
+    """
+    Provides a hash function based on hmac module.
+    """
+    def __init__(self, m, key, algo='sha1'):
+        """
+        Constructor.
 
-ref paper: DEEP PACKET INSPECTION USING PARALLEL BLOOM FILTERS
-"""
-import random
+        :param int m: exclusive upper bound of hash value; should be power of 2
+        :param str key: HMAC key
+        :param str algo: hash algorithm; must exist in hashlib
+        """
+        self.m = m
+        self.key = key
+        import hashlib
+        self.digest = getattr(hashlib, algo)
+
+    def __call__(self, s):
+        """
+        Compute hash value.
+
+        :param str s: input string
+        :return a hash value
+        :rtype int
+        """
+        import hmac
+        hm = hmac.new(self.key, s, self.digest)
+        d = hm.digest()
+
+        h = 0
+        for char in d:
+            h = (h << 8) | ord(char)
+
+        return h % self.m
+
+    @staticmethod
+    def create(m, algo='sha1'):
+        """
+        Create a random HmacHash.
+
+        :param int m: exclusive upper bound of hash value; should be power of 2
+        :param str algo: hash algorithm; must exist in hashlib
+        """
+        import random
+        key = ''.join([ chr(random.randrange(256)) for i in range(16) ])
+        return HmacHash(m, key, algo)
 
 class XorHash:
     """
@@ -77,20 +117,12 @@ class XorHash:
         vector = [ random.randint(0, m-1) for j in range(maxInputSize * 8) ]
         return XorHash(vector)
 
-class XorHashes:
+class HashGroup:
     """
-    Defines a group of XOR-based hash functions.
+    A function to compute multiple hashes on the same input.
     """
-    def __init__(self, vectors):
-        """
-        Construct a group of XOR-based hash functions.
-
-        :param vectors list of term vectors
-        """
-        self.functions = [ XorHash(vector) for vector in vectors ]
-
-    def __repr__(self):
-        return 'XorHashes(%s)' % [ f.vector for f in self.functions ]
+    def __init__(self, functions):
+        self.functions = functions
 
     def __call__(self, s):
         """
@@ -102,29 +134,15 @@ class XorHashes:
         """
         return [ f(s) for f in self.functions ]
 
-    @staticmethod
-    def create(nFunctions, m, maxInputSize=500):
-        """
-        Create a group of random XorHashes.
-
-        :param int nFunctions: number of hash functions
-        :param int m: exclusive upper bound of hash value; should be power of 2
-        :param int maxInputSize: maximum size of input hash functions can accomodate
-        """
-        xhs = XorHashes([])
-        xhs.functions = [ XorHash.create(m, maxInputSize) for i in range(nFunctions) ]
-        return xhs
-
 if __name__ == "__main__":
     TEST_INPUTS = ["/A/1", "/A/2", "/B/1", "/B/2"]
 
-    print "Random hash vectors."
-    xhs = XorHashes.create(3, 1<<16)
-    for INPUT in TEST_INPUTS:
-        print INPUT, xhs(INPUT)
+    hg = HashGroup([
+      HmacHash(1<<16, "key"),
+      HmacHash.create(1<<16),
+      XorHash(range(16000, 16200)),
+      XorHash.create(1<<16),
+    ])
 
-    print "Fixed hash vectors."
-    xhs1 = XorHashes([list(range(0, 200)), list(range(200, 400)), list(range(400, 600)), list(range(600, 800))])
-    xhs2 = XorHashes([list(range(0, 200)), list(range(200, 400)), list(range(400, 600)), list(range(600, 800))])
     for INPUT in TEST_INPUTS:
-        print INPUT, xhs1(INPUT), xhs2(INPUT)
+        print INPUT, hg(INPUT)
