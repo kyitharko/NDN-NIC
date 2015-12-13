@@ -26,7 +26,7 @@ shift 2
   echo -ne '\t'
   echo -n nFalsePositives
   echo -ne '\t'
-  echo -n fpRate # nFalsePositives/nSwAccepts
+  echo -n fpRate # nFalsePositives/nNicAccepts
   echo
 ) > $KEY.vary-by-size.tsv
 
