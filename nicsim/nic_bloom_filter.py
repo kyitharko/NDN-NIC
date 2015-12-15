@@ -35,7 +35,7 @@ class NicBloomFilter:
         elif isinstance(hasher, (int, long)):
             return HashGroup([ HmacHash.create(m) for i in range(hasher) ])
         elif hasher is None:
-            return HashGroup([ HmacHash.create(m) for i in range(3) ])
+            return NicBloomFilter.__makeHasher(3, m)
         else:
             raise TypeError("unexpected type for Bloom filter")
 
@@ -52,6 +52,9 @@ class NicBloomFilter:
         self.buckets = [0] * m
         self.table = dict()
         self.hasher = NicBloomFilter.__makeHasher(hasher, m)
+
+    def __len__(self):
+        return len(self.table)
 
     def add(self, key, reasonCode):
         """
@@ -90,14 +93,28 @@ class NicBloomFilter:
         Lookup a key with its reason codes
 
         :param string key
-        :return: list of reasonCodes if key exists, False if key does not exist,
-                 or "FP" if key exists in Bloom filter due to false positive
+        :return list of reasonCodes if key exists, False if key does not exist,
+                or "FP" if key exists in Bloom filter due to false positive
         """
         hashes = self.hasher(key)
         if not all([self.buckets[h] for h in hashes]):
             return False
 
         return self.table.get(key, "FP")
+
+    def capacity(self, maxFp=1.0):
+        """
+        Compute the capacity given upper bound of false positive probability.
+
+        :param float maxFp: upper bound of false positive probability
+        :return capacity
+        :rtype float
+        """
+        # classic formula: f = (1-e^(-(n k)/m))^k
+        # inverse function: n = -(m log(1-f^(1/k)))/k
+        import math
+        k = len(self.hasher)
+        return -(self.m * math.log(1.0 - math.pow(maxFp, (1.0 / k)))) / k
 
 if __name__ == "__main__":
     import argparse
@@ -145,6 +162,7 @@ if __name__ == "__main__":
             nFalsePositives += 1
 
     fpRateActual = float(nFalsePositives) / args.t
+    capacityFpActual = nbf.capacity(fpRateActual)
 
     import math
     fpRate1 = math.pow(1 - math.exp(-float(args.n) * args.k / args.m), args.k)
@@ -152,6 +170,7 @@ if __name__ == "__main__":
     fpRate1kOpt = math.pow(1 - math.exp(-float(args.n) * kOpt / args.m), kOpt)
 
     print "Actual FP rate = %0.6f" % fpRateActual
-    print "FP rate (classical formula) = %0.6f" % fpRate1
+    print "Capacity for actual FP rate = %0.6f" % capacityFpActual
+    print "FP probability (classic formula) = %0.6f" % fpRate1
     print "Optimal k = %0.6f" % kOpt
     print "FP rate with optimal k = %0.6f" % fpRate1kOpt

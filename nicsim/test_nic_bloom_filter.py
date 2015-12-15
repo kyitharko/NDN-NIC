@@ -22,23 +22,30 @@ from nic_bloom_filter import NicBloomFilter
 
 class NicBloomFilterTestCase(ut.TestCase):
     def setUp(self):
-        self.bf = NicBloomFilter(128)
+        self.nbf = NicBloomFilter(128)
 
     def test_simple(self):
-        self.bf.add("/A", "PIT1")
-        self.bf.add("/C/1", "PIT1")
-        self.bf.add("/C/1", "PIT1")
-        self.assertEqual(self.bf.query("/A"), ["PIT1"])
-        self.assertEqual(self.bf.query("/B"), False)
-        self.assertEqual(self.bf.query("/C/1"), ["PIT1", "PIT1"])
+        self.assertEqual(len(self.nbf), 0)
+        self.nbf.add("/A", "PIT1")
+        self.assertEqual(len(self.nbf), 1)
+        self.nbf.add("/C/1", "PIT1")
+        self.assertEqual(len(self.nbf), 2)
+        self.nbf.add("/C/1", "PIT1")
+        self.assertEqual(len(self.nbf), 2)
+        self.assertEqual(self.nbf.query("/A"), ["PIT1"])
+        self.assertEqual(self.nbf.query("/B"), False)
+        self.assertEqual(self.nbf.query("/C/1"), ["PIT1", "PIT1"])
 
     def test_remove(self):
-        self.bf.add("/A", "PIT1")
-        self.bf.add("/A", "PIT1")
-        self.bf.remove("/A", "PIT1")
-        self.assertEqual(self.bf.query("/A"), ["PIT1"])
-        self.bf.remove("/A", "PIT1")
-        self.assertEqual(self.bf.query("/A"), False)
+        self.nbf.add("/A", "PIT1")
+        self.nbf.add("/A", "PIT1")
+        self.assertEqual(len(self.nbf), 1)
+        self.nbf.remove("/A", "PIT1")
+        self.assertEqual(len(self.nbf), 1)
+        self.assertEqual(self.nbf.query("/A"), ["PIT1"])
+        self.nbf.remove("/A", "PIT1")
+        self.assertEqual(len(self.nbf), 0)
+        self.assertEqual(self.nbf.query("/A"), False)
 
     def test_fp(self):
         """
@@ -46,8 +53,8 @@ class NicBloomFilterTestCase(ut.TestCase):
         and lookup a diffent key expecting a false positive
         """
         for i in range(1024):
-            self.bf.add(str(i), "PIT1")
-        self.assertEqual(self.bf.query("x"), "FP")
+            self.nbf.add(str(i), "PIT1")
+        self.assertEqual(self.nbf.query("x"), "FP")
 
 if __name__ == '__main__':
     ut.main(verbosity=2)

@@ -134,6 +134,9 @@ class HashGroup:
         """
         return [ f(s) for f in self.functions ]
 
+    def __len__(self):
+        return len(self.functions)
+
 if __name__ == "__main__":
     TEST_INPUTS = ["/A/1", "/A/2", "/B/1", "/B/2"]
 
