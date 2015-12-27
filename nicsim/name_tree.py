@@ -56,15 +56,18 @@ class NameTreeNode:
         """
         lastComp = "/" if self.name == "/" else nameutil.getLastComponent(self.name)
         return "\n".join([ "%s%s %s" % ("  " * indent, lastComp, self._printAttributes()) ] +
-                         [ self.children[child].printSubtree(indent + 1) for child in sorted(self.children.keys()) ])
+                         [ child.printSubtree(indent + 1) for child in self.iterChildren() ])
 
-    def iterAncestors(self):
+    def iterChildren(self):
         """
-        Iterate over ancestors of this node.
+        Iterate over children of this node.
+
+        Children are sorted by name (string sorting, not NDN canonical order).
+
+        To iterate over children unsorted, use .children.itervalues().
         """
-        node = self.parent
-        while node is not None:
-            yield node
+        for name in sorted(self.children.keys()):
+            yield self.children[name]
 
 class NameTree(dict):
     """
@@ -121,8 +124,16 @@ class NameTree(dict):
             del node.parent.children[name]
         dict.__delitem__(self, name)
 
+    def _printAttributes(self):
+        """
+        When overridden in a subclass, print the title and attributes of the tree.
+
+        :rtype str
+        """
+        return self.__class__.__name__
+
     def __repr__(self):
-        return "%s{%s}" % (self.__class__.__name__, ",".join([ str(self[name]) for name in sorted(self.keys()) ]))
+        return "%s{%s}" % (self._printAttributes(), ",".join([ str(self[name]) for name in sorted(self.keys()) ]))
 
     def __str__(self):
-        return "%s\n%s" % (self.__class__.__name__, "  (empty)" if self.root is None else self.root.printSubtree(indent=1))
+        return "%s\n%s" % (self._printAttributes(), "  (empty)" if self.root is None else self.root.printSubtree(indent=1))
