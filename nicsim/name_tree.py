@@ -22,8 +22,9 @@ class NameTreeNode:
     """
     Represents a node in NameTree.
     """
-    def __init__(self, name, parent, **params):
+    def __init__(self, name, tree, parent, **params):
         self.name = name
+        self.tree = tree
         assert isinstance(parent, NameTreeNode) or (parent is None and name == "/")
         self.parent = parent
         self.children = {}
@@ -98,7 +99,7 @@ class NameTree(dict):
             parent = self.get(nameutil.getPrefix1(name))
             if parent is None:
                 raise KeyError("parent of %s is missing" % name)
-        node = self.node(name, parent=parent)
+        node = self.node(name, tree=self, parent=parent)
         dict.__setitem__(self, name, node)
         if name == "/":
             self.root = node
