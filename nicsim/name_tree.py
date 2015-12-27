@@ -22,11 +22,18 @@ class NameTreeNode:
     """
     Represents a node in NameTree.
     """
-    def __init__(self, name, parent):
+    def __init__(self, name, parent, **params):
         self.name = name
         assert isinstance(parent, NameTreeNode) or (parent is None and name == "/")
         self.parent = parent
         self.children = {}
+        self._init(**params)
+
+    def _init(self):
+        """
+        When overridden in a subclass, perform initialization.
+        """
+        pass
 
     def _printAttributes(self):
         """
@@ -46,9 +53,17 @@ class NameTreeNode:
         :param int indent: indentation level
         :
         """
-        lastComp = nameutil.getLastComponent(self.name)
+        lastComp = "/" if self.name == "/" else nameutil.getLastComponent(self.name)
         return "\n".join([ "%s%s %s" % ("  " * indent, lastComp, self._printAttributes()) ] +
                          [ self.children[child].printSubtree(indent + 1) for child in sorted(self.children.keys()) ])
+
+    def iterAncestors(self):
+        """
+        Iterate over ancestors of this node.
+        """
+        node = self.parent
+        while node is not None:
+            yield node
 
 class NameTree(dict):
     """
@@ -61,37 +76,52 @@ class NameTree(dict):
         :param class node: node constructor
         """
         self.node = node
-        dict.__setitem__(self, "/", self.node("/", parent=None))
-        self.root = self["/"]
-        """The root node. This node cannot be deleted."""
+        """Node constructor."""
+        self.root = None
+        """Root node."""
+
+    def root(self):
+        """
+        Get the root node.
+
+        If it does not exist, returns None.
+        """
+        return self.get("/")
 
     def __setitem__(self, name, node):
         raise TypeError("setitem is disallowed")
 
     def __missing__(self, name):
-        parent = self.get(nameutil.getPrefix1(name))
-        if parent is None:
-            raise KeyError("parent node of %s does not exist" % name)
+        if name == "/":
+            parent = None
+        else:
+            parent = self.get(nameutil.getPrefix1(name))
+            if parent is None:
+                raise KeyError("parent of %s is missing" % name)
         node = self.node(name, parent=parent)
         dict.__setitem__(self, name, node)
-        parent.children[name] = node
+        if name == "/":
+            self.root = node
+        else:
+            parent.children[name] = node
         return node
 
     def __delitem__(self, name):
         if name not in self:
             raise KeyError("node does not exist")
-        if name == "/":
-            raise KeyError("cannot delete root node")
 
         node = self[name]
         if len(node.children) > 0:
             raise KeyError("cannot delete node %s with %d children" % (name, len(node.children)))
 
-        del node.parent.children[name]
+        if name == "/":
+            self.root = None
+        else:
+            del node.parent.children[name]
         dict.__delitem__(self, name)
 
     def __repr__(self):
-        return "%s{%s}" % (self.name, ",".join([ str(self[name]) for name in sorted(self.keys()) ]))
+        return "%s{%s}" % (self.__class__.__name__, ",".join([ str(self[name]) for name in sorted(self.keys()) ]))
 
     def __str__(self):
-        return "%s\n%s" % (self.name, self.root.printSubtree(indent=1))
+        return "%s\n%s" % (self.__class__.__name__, "  (empty)" if self.root is None else self.root.printSubtree(indent=1))

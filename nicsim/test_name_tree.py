@@ -22,6 +22,15 @@ from name_tree import NameTree
 class NameTreeTestCase(ut.TestCase):
     def test_insert(self):
         nt = NameTree()
+        self.assertEqual(len(nt), 0)
+        self.assertNotIn("/", nt)
+        self.assertIsNone(nt.root)
+
+        with self.assertRaises(KeyError):
+            nt["/A"] # parent missing
+
+        nt["/"]
+        self.assertIsNotNone(nt.root)
         self.assertEqual(nt.root, nt["/"])
 
         with self.assertRaises(KeyError):
@@ -43,9 +52,7 @@ class NameTreeTestCase(ut.TestCase):
     def test_delete(self):
         nt = NameTree()
 
-        with self.assertRaises(KeyError):
-            del nt["/"] # cannot delete root
-
+        nt["/"]
         nt["/A"]
         nt["/A/B"]
         nt["/A/C"]
@@ -75,6 +82,13 @@ class NameTreeTestCase(ut.TestCase):
 
         del nt["/D"]
         self.assertNotIn("/D", nt)
+
+        del nt["/A/B"]
+        del nt["/A/C"]
+        del nt["/A"]
+        del nt["/"]
+        self.assertIsNone(nt.root)
+        self.assertEqual(len(nt), 0)
 
 if __name__ == '__main__':
     ut.main(verbosity=2)
