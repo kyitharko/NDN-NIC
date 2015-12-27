@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
-from utility import getPrefixes
+import nameutil
 
 class NaiveFib:
     def __init__(self, nic):
@@ -47,11 +47,11 @@ class NaiveCs:
         self.bf2 = nic.bf2
 
     def insert(self, name):
-        prefixes = getPrefixes(name)
+        prefixes = nameutil.getPrefixes(name)
         for prefix in prefixes:
             self.bf2.add(prefix, "CS2")
 
     def erase(self, name):
-        prefixes = getPrefixes(name)
+        prefixes = nameutil.getPrefixes(name)
         for prefix in prefixes:
             self.bf2.remove(prefix, "CS2")

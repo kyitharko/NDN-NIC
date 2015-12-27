@@ -18,7 +18,7 @@
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
 from nic_bloom_filter import NicBloomFilter
-from utility import getPrefixes
+import nameutil
 
 class Nic:
     """
@@ -49,7 +49,7 @@ class Nic:
         reasonCodes = []
 
         # get prefixes of the input name
-        prefixes = getPrefixes(name)
+        prefixes = nameutil.getPrefixes(name)
 
         # BF1 prefix match
         for prefix in prefixes:
