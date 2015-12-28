@@ -19,6 +19,8 @@
 
 import nameutil
 
+from ait import AitCs
+
 class NaiveFib:
     def __init__(self, nic):
         self.bf1 = nic.bf1

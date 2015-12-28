@@ -211,7 +211,7 @@ class Ait(NameTree):
             checkSubtree(self.root, False)
 
 class AitCsOptions:
-    useFreeFib1 = True
+    useFreeFib1 = False
     """Use "free" CS1 key where FIB1 key exists."""
     degreeThreshold = 64
     """Node degree threshold. A node exceeding this threshold is labelled CS1."""
