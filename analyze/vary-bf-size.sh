@@ -28,7 +28,7 @@ shift 2
   echo -ne '\t'
   echo -n fpRate # nFalsePositives/nNicAccepts
   echo
-) > $KEY.vary-by-size.tsv
+) > $KEY.vary-bf-size.tsv
 
 while read -r -a SIZES; do
   BF1SIZE=${SIZES[0]}
@@ -53,6 +53,6 @@ while read -r -a SIZES; do
           totalNicAccepts==0 ? 0 : totalFalsePositives/totalNicAccepts
   }
   ' $KEY1.analyze.tsv
-done < $SIZES_FILE >> $KEY.vary-by-size.tsv
+done < $SIZES_FILE >> $KEY.vary-bf-size.tsv
 
-column -t $KEY.vary-by-size.tsv
+column -t $KEY.vary-bf-size.tsv
