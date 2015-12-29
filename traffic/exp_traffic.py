@@ -59,7 +59,7 @@ class PingTraffic(Traffic):
         self.server.stop()
 
 class NfsTraffic(Traffic):
-    ARGUMENTS_DESCRIPTION = 's:serverHost:paths-file,..,c:clientHost:clientPrefix:client-name:ops-trace,..,rewrite-timestamp:t*2'
+    ARGUMENTS_DESCRIPTION = 's:serverHost:paths-file,..,c:clientHost:client-name:ops-trace,..,rewrite-timestamp:t*2'
 
     def __init__(self, *opts):
         self.servers = {}

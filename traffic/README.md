@@ -18,8 +18,7 @@ This functionality can be enabled and configured via environment variables, desc
 
 Run **exp.py** to emulate the network and collect traces.
 
-Currently, only ndnping traffic is supported.
-Example:
+Example for ndnping traffic:
 
     # Emulate 4 hosts on a single broadcast media.
     # h1 is consumer only.
@@ -27,6 +26,13 @@ Example:
     # h3 is both consumer and producer.
     # h4 is neither consumer nor producer.
     sudo PYTHONPATH=$HOME/mnndn ./exp.py --k 4 --duration 60 --traffic ping,100,500,/h3,h3,h1 --traffic ping,100,500,/h2,h2,h3
+
+Example for NFS traffic (requires `nfs-trace-server` and `nfs-trace-client` installed):
+
+    # Emulate 4 hosts on a single broadcast media.
+    # h1 and h2 are NFS servers.
+    # h3 and h4 are NFS clients.
+    sudo PYTHONPATH=$HOME/mnndn ./exp.py --k 4 --duration 60 --traffic nfs,s:h1:/tmp/nfs-dataset/server1.paths,s:h2:/tmp/nfs-dataset/server2.paths,c:h3:h3:/tmp/nfs-dataset/0000-0010.client1.replay,c:h4:h4:/tmp/nfs-dataset/0000-0010.client2.replay
 
 Collected traces are in `/tmp/mnndn/*/var/log/ndn/ttt.log`.
 Timestamps in traces among different hosts are comparable.
