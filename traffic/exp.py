@@ -4,6 +4,7 @@
 import atexit
 import datetime
 import functools
+import threading
 import time
 
 from mininet.log import setLogLevel
@@ -13,6 +14,8 @@ from mininet.cli import CLI
 
 from mnndn.ndn import NdnHost
 from mnndn.app import NdnPing,NdnPingServer
+
+from exp_traffic import makeTraffic
 
 NDNNIC_FACEURI = 'udp4://224.0.23.170:56363'
 
@@ -24,24 +27,11 @@ def parseCommandLine():
                         help='count of hosts')
     parser.add_argument('--duration', type=int, default=60,
                         help='duration of emulation')
-    parser.add_argument('--ping', action='append',
-                        help='ping traffic client,host,interval,count')
+    parser.add_argument('--traffic', action='append', required=True,
+                        help='traffic configuration string')
     args = parser.parse_args()
 
     return args
-
-def startPing(net, pings):
-    print 'Start ping servers.'
-    for host in net.hosts:
-        server = NdnPingServer(host, '/%s' % host.name)
-        server.start()
-    time.sleep(1)
-
-    print 'Start ping clients.'
-    for pingConf in pings:
-        clientHost, serverHost, interval, count = pingConf.split(',')
-        client = NdnPing(net[clientHost], '/%s' % serverHost, interval=int(interval), count=int(count))
-        client.start()
 
 def run(args):
     topo = SingleSwitchTopo(k=args.k)
@@ -55,6 +45,8 @@ def run(args):
     net.start()
     atexit.register(net.stop)
 
+    traffics = [ makeTraffic(*trafficConfig.split(',')) for trafficConfig in args.traffic ]
+
     print 'Start forwarding.'
     fws = [ host.getFw() for host in net.hosts ]
     for fw in fws:
@@ -64,13 +56,21 @@ def run(args):
     for host in net.hosts:
         host.pexec('nfdc', 'register', '/', NDNNIC_FACEURI)
 
-    if args.ping is not None:
-        startPing(net, args.ping)
+    print 'Start traffic.'
+    startTrafficThreads = [ threading.Thread(target=functools.partial(traffic.start, net)) for traffic in traffics ]
+    [ thread.start() for thread in startTrafficThreads ]
+    [ thread.join() for thread in startTrafficThreads ]
 
     startDt = datetime.datetime.now()
     endDt = startDt + datetime.timedelta(seconds=args.duration)
     print 'Run experiment, starting at %s, estimated ending at %s.' % (startDt, endDt)
     time.sleep(args.duration)
+
+    print 'Stop traffic.'
+    stopTrafficThreads = [ threading.Thread(target=functools.partial(traffic.stop, net)) for traffic in traffics ]
+    [ thread.start() for thread in stopTrafficThreads ]
+    [ thread.join() for thread in stopTrafficThreads ]
+    time.sleep(1)
 
 if __name__ == '__main__':
     setLogLevel('info')
