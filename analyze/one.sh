@@ -8,10 +8,14 @@ R="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 
 KEY=$1
 if [[ -z $KEY ]]; then
-  echo 'Usage: ./one.sh key params..'
+  echo 'Usage: ./one.sh key params..' >/dev/stderr
   exit 2
 fi
 shift
+
+if [[ -f $KEY.analyze.tsv ]]; then
+  echo "$KEY.analyze.tsv exists. Experiment skipped." >/dev/stderr
+else # begin experiment
 
 (
   echo -n host
@@ -45,4 +49,5 @@ for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
   echo
 done >> $KEY.analyze.tsv
 
+fi # end experiment
 column -t $KEY.analyze.tsv
