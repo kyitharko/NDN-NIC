@@ -70,4 +70,4 @@ class Nic:
         else:
             reasonCodes += result2
 
-        return len(reasonCodes) > 0, reasonCodes
+        return len(reasonCodes) > 0, list(set(reasonCodes))
