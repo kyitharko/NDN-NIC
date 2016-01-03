@@ -25,7 +25,7 @@ shift 2
   echo -ne '\t'
   echo -n host
   echo -ne '\t'
-  echo -n $(echo | $R/analyze/fp-classify.awk | head -1 | cut -f2-)
+  echo -n $(echo | gawk -f $R/analyze/fp-classify.awk | head -1 | cut -f2-)
   echo
 ) > $KEY.vary-ait-threshold.tsv
 
@@ -36,7 +36,7 @@ while read -r -a THRESHOLDS; do
   KEY1=$KEY.degree-${DEGREETHRESHOLD}_fp2-${FP2THRESHOLD}_fp1-${FP1THRESHOLD}
   $R/analyze/one.sh $KEY1 --cs="AitCs(nic,AitCs.Options(degreeThreshold=$DEGREETHRESHOLD, fp2Threshold=0.01*$FP2THRESHOLD, fp1Threshold=0.01*$FP1THRESHOLD))" "$@" > /dev/null
 
-  $R/analyze/fp-classify.awk -v noHeader=1 $KEY1.*.nd.tsv | \
+  gawk -f $R/analyze/fp-classify.awk -v noHeader=1 $KEY1.*.nd.tsv | \
   sed -e "s/$KEY1\.\([^.]*\)\.nd\.tsv/\1/" -e "s/^/$DEGREETHRESHOLD\t$FP2THRESHOLD\t$FP1THRESHOLD\t/"
 done < $THRESHOLDS_FILE >> $KEY.vary-ait-threshold.tsv
 
