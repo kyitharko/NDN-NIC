@@ -95,7 +95,8 @@ class AitNode(NameTreeNode):
         self.deepestMultiCs1Dist = None
         self.deepestMultiCs1Ptr = None
 
-        self.parent._updateCs2Fields()
+        if self.parent is not None:
+            self.parent._updateCs2Fields()
 
     def labelCs1(self):
         """
@@ -299,6 +300,8 @@ class AitCs:
 
     def erase(self, name):
         raise NotImplementedError
+
+AitCs.Options = AitCsOptions
 
 if __name__ == "__main__":
     from nic import Nic
