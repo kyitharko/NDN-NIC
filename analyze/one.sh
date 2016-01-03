@@ -13,9 +13,18 @@ if [[ -z $KEY ]]; then
 fi
 shift
 
-if [[ -f $KEY.analyze.tsv ]]; then
-  echo "$KEY.analyze.tsv exists. Experiment skipped." >/dev/stderr
-else # begin experiment
+JOBS=${JOBS:-$(grep -c ^processor /proc/cpuinfo)}
+
+for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
+  if [[ -f $KEY.$H.nd.tsv ]]; then
+    continue
+  fi
+  while [[ $(jobs -p | wc -l) -ge $JOBS ]]; do
+    sleep 0.1
+  done
+  python2 $R/nicsim/nicsim.py "$@" < $H.ttt.tsv > $KEY.$H.nd.tsv &
+done
+wait
 
 (
   echo -n host
@@ -33,8 +42,6 @@ else # begin experiment
 ) > $KEY.analyze.tsv
 
 for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
-  python2 $R/nicsim/nicsim.py "$@" < $H.ttt.tsv > $KEY.$H.nd.tsv
-
   echo -n $H
   echo -ne '\t'
   echo -n $(cat $KEY.$H.nd.tsv | wc -l)
@@ -49,5 +56,4 @@ for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
   echo
 done >> $KEY.analyze.tsv
 
-fi # end experiment
 column -t $KEY.analyze.tsv
