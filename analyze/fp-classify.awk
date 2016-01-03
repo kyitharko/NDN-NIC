@@ -1,6 +1,6 @@
 #!/usr/bin/gawk -f
 # Classify false positive reasons from existing NIC decision logs.
-# Usage: fp-classify.awk *.nd.tsv
+# Usage: fp-classify.awk [-v noHeader=1] [-v noFooter=1] *.nd.tsv
 
 BEGIN {
   SUBSEP = " "
@@ -21,16 +21,22 @@ BEGIN {
   classify["D","CS1"] = category_PT
   classify["D","CS2"] = category_PT
 
-  print "FILENAME", "PACKETS", "BF", "PM", "BF+PM", "PT", "BF+PT", "PM+PT", "BF+PM+PT"
+  if (!noHeader) {
+    print "FILENAME", "ARRIVALS", "ACCEPTS", "BF", "PM", "BF+PM", "PT", "BF+PT", "PM+PT", "BF+PM+PT"
+  }
 }
 BEGINFILE {
-  nPackets = 0
+  nArrivals = 0
+  nAccepts = 0
   for (i=1; i<=category_MAX; ++i) {
     nFps[i] = 0
   }
 }
 {
-  ++nPackets
+  ++nArrivals
+}
+$5!="DROP" {
+  ++nAccepts
 }
 $4=="DROP" && $5!="DROP" {
   nReasons = split($5, reasons, ",")
@@ -41,13 +47,16 @@ $4=="DROP" && $5!="DROP" {
   ++nFps[category]
 }
 ENDFILE {
-  nPacketsTotal += nPackets
+  nArrivalsTotal += nArrivals
+  nAcceptsTotal += nAccepts
   for (i=1; i<=category_MAX; ++i) {
     nFpsTotal[i] += nFps[i]
   }
 
-  print FILENAME, nPackets, nFps[1], nFps[2], nFps[3], nFps[4], nFps[5], nFps[6], nFps[7]
+  print FILENAME, nArrivals, nAccepts, nFps[1], nFps[2], nFps[3], nFps[4], nFps[5], nFps[6], nFps[7]
 }
 END {
-  print "*", nPacketsTotal, nFpsTotal[1], nFpsTotal[2], nFpsTotal[3], nFpsTotal[4], nFpsTotal[5], nFpsTotal[6], nFpsTotal[7]
+  if (!noFooter) {
+    print "+", nArrivalsTotal, nAcceptsTotal, nFpsTotal[1], nFpsTotal[2], nFpsTotal[3], nFpsTotal[4], nFpsTotal[5], nFpsTotal[6], nFpsTotal[7]
+  }
 }
