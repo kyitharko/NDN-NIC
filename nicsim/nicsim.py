@@ -18,13 +18,8 @@
 
 import sys
 
-import table
 from nic import Nic
 from nic_sim import NicSim
-
-FIB_IMPLS = [ cls for cls in dir(table) if cls.endswith("Fib") ]
-PIT_IMPLS = [ cls for cls in dir(table) if cls.endswith("Pit") ]
-CS_IMPLS = [ cls for cls in dir(table) if cls.endswith("Cs") ]
 
 def parseCommandLine():
     import argparse
@@ -33,20 +28,26 @@ def parseCommandLine():
                         help="BF1 size")
     parser.add_argument("--bf2", type=int, default=1024,
                         help="BF2 size")
-    parser.add_argument("--fib", choices=FIB_IMPLS, default="NaiveFib",
-                        help="FIB type")
-    parser.add_argument("--pit", choices=PIT_IMPLS, default="NaivePit",
-                        help="PIT type")
-    parser.add_argument("--cs", choices=CS_IMPLS, default="NaiveCs",
-                        help="CS type")
+    parser.add_argument("--fib", default="NaiveFib",
+                        help="FIB type or expression")
+    parser.add_argument("--pit", default="NaivePit",
+                        help="PIT type or expression")
+    parser.add_argument("--cs", default="NaiveCs",
+                        help="CS type or expression")
     args = parser.parse_args()
     return args
 
+def makeTable(nic, arg):
+    import table
+    if '(' not in arg:
+        return getattr(table, arg)
+    return eval(arg, table.__dict__, dict(nic=nic))
+
 def run(args):
     nic = Nic(args.bf1, args.bf2)
-    fib = getattr(table, args.fib)
-    pit = getattr(table, args.pit)
-    cs = getattr(table, args.cs)
+    fib = makeTable(nic, args.fib)
+    pit = makeTable(nic, args.pit)
+    cs = makeTable(nic, args.cs)
     nicSim = NicSim(nic, fib=fib, pit=pit, cs=cs)
     nicSim.processTtt(sys.stdin, sys.stdout)
 
