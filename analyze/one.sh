@@ -26,6 +26,7 @@ for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
 done
 wait
 
+if [[ ! -f $KEY.analyze.tsv ]]; then
 (
   echo -n host
   echo -ne '\t'
@@ -39,21 +40,23 @@ wait
   echo -ne '\t'
   echo -n nFalseNegatives
   echo
-) > $KEY.analyze.tsv
 
-for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
-  echo -n $H
-  echo -ne '\t'
-  echo -n $(cat $KEY.$H.nd.tsv | wc -l)
-  echo -ne '\t'
-  echo -n $(awk '$4!="DROP"' $KEY.$H.nd.tsv | wc -l)
-  echo -ne '\t'
-  echo -n $(awk '$5!="DROP"' $KEY.$H.nd.tsv | wc -l)
-  echo -ne '\t'
-  echo -n $(awk '$4=="DROP" && $5!="DROP"' $KEY.$H.nd.tsv | wc -l)
-  echo -ne '\t'
-  echo -n $(awk '$4!="DROP" && $5=="DROP"' $KEY.$H.nd.tsv | wc -l)
-  echo
-done >> $KEY.analyze.tsv
+  for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
+    echo -n $H
+    echo -ne '\t'
+    echo -n $(cat $KEY.$H.nd.tsv | wc -l)
+    echo -ne '\t'
+    echo -n $(awk '$4!="DROP"' $KEY.$H.nd.tsv | wc -l)
+    echo -ne '\t'
+    echo -n $(awk '$5!="DROP"' $KEY.$H.nd.tsv | wc -l)
+    echo -ne '\t'
+    echo -n $(awk '$4=="DROP" && $5!="DROP"' $KEY.$H.nd.tsv | wc -l)
+    echo -ne '\t'
+    echo -n $(awk '$4!="DROP" && $5=="DROP"' $KEY.$H.nd.tsv | wc -l)
+    echo
+  done
+
+) > $KEY.analyze.tsv
+fi
 
 column -t $KEY.analyze.tsv
