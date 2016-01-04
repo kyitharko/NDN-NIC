@@ -1,0 +1,38 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>visualize fp-classify output</title>
+<div id="venn"></div>
+<div>
+Paste a line of fp-classify output:
+<input type="text" id="t_input">
+<input type="button" id="btn_plot" value="plot">
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script src="https://benfred.github.io/venn.js/venn.js"></script>
+<script>
+document.getElementById('btn_plot').addEventListener('click', function(){
+  var input = document.getElementById('t_input').value;
+
+  var tokens = input.split(/\s+/);
+  if (tokens.length < 7) {
+    alert('need at least 7 columns');
+    return;
+  }
+
+  var columns = tokens.slice(tokens.length - 7);
+  columns.unshift('');
+
+  var sets = [ {sets: ['BF'], size: columns[1]},
+               {sets: ['PM'], size: columns[2]},
+               {sets: ['BF', 'PM'], size: columns[3]},
+               {sets: ['PT'], size: columns[4]},
+               {sets: ['BF', 'PT'], size: columns[5]},
+               {sets: ['PM', 'PT'], size: columns[6]},
+               {sets: ['BF', 'PM', 'PT'], size: columns[7]}
+               ];
+
+  var chart = venn.VennDiagram();
+  d3.select("#venn").datum(sets).call(chart);
+});
+</script>
