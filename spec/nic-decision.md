@@ -18,6 +18,7 @@ Each record indicates the decision of NIC on an incoming packet.
 	* **FP2**: accepted, BF2 Bloom filter false positive
 	* **FIB1**: accepted, BF1 key inserted by FIB
 	* **PIT1**: accepted, BF1 key inserted by PIT
+	* **PIT3**: accepted, BF3 key inserted by PIT
 	* **CS1**: accepted, BF1 key inserted by CS
 	* **CS2**: accepted, BF2 key inserted by CS
 	* note: if there are multiple reasons for accepting a packet, list all reasons separated by comma, such as `FIB1,CS1,CS2`

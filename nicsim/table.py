@@ -24,7 +24,6 @@ from ait import AitCs
 class NaiveFib:
     def __init__(self, nic):
         self.bf1 = nic.bf1
-        self.bf2 = nic.bf2
 
     def insert(self, name):
         self.bf1.add(name, "FIB1")
@@ -34,14 +33,13 @@ class NaiveFib:
 
 class NaivePit:
     def __init__(self, nic):
-        self.bf1 = nic.bf1
-        self.bf2 = nic.bf2
+        self.bf, self.reasonCode = (nic.bf1, "PIT1") if nic.bf3 is None else (nic.bf3, "PIT3")
 
     def insert(self, name):
-        self.bf1.add(name, "PIT1")
+        self.bf.add(name, self.reasonCode)
 
     def erase(self, name):
-        self.bf1.remove(name, "PIT1")
+        self.bf.remove(name, self.reasonCode)
 
 class NaiveCs:
     def __init__(self, nic):

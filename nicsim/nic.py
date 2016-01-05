@@ -25,17 +25,39 @@ class Nic:
     Simulates NDN-NIC hardware.
     """
     @staticmethod
-    def __makeBloomFilter(bf):
+    def __makeBloomFilter(bf, canDisable=False):
         if isinstance(bf, NicBloomFilter):
             return bf
         elif isinstance(bf, (int, long)):
+            if bf == 0:
+                if canDisable:
+                    return None
+                else:
+                    raise ValueError("Bloom filter size cannot be zero")
             return NicBloomFilter(bf)
         else:
+            if bf is None and canDisable:
+                return None
             raise TypeError("unexpected type for Bloom filter")
 
-    def __init__(self, bf1, bf2):
+    def __init__(self, bf1, bf2, bf3, ignoreNetType2=False):
+        """
+        Constructor;
+
+        :param bf1: NicBloomFilter instance or BF size
+        :param bf2: NicBloomFilter instance or BF size
+        :param bf3: NicBloomFilter instance or BF size; None or 0 to disable BF3
+        :param ignoreNetType2: if true, packets are matched against BF2 even if it's not Interest
+        """
         self.bf1 = Nic.__makeBloomFilter(bf1)
         self.bf2 = Nic.__makeBloomFilter(bf2)
+        self.bf3 = Nic.__makeBloomFilter(bf3, canDisable=True)
+        self.ignoreNetType2 = ignoreNetType2
+
+        self._prefixMatch = {
+          "I": (self.bf1, "FP1"),
+          "D": (self.bf1, "FP1") if self.bf3 is None else (self.bf3, "FP3")
+        }
 
     def processPacket(self, netType, name):
         """
@@ -51,23 +73,25 @@ class Nic:
         # get prefixes of the input name
         prefixes = nameutil.getPrefixes(name)
 
-        # BF1 prefix match
+        # BF1 or BF3 prefix match
+        prefixMatchBf, prefixMatchFpCode = self._prefixMatch[netType]
         for prefix in prefixes:
-            result1 = self.bf1.query(prefix)
+            result1 = prefixMatchBf.query(prefix)
             if result1 == False:
                 pass
             elif result1 == "FP":
-                reasonCodes += ["FP1"]
+                reasonCodes += [prefixMatchFpCode]
             else:
                 reasonCodes += result1
 
-        # BF2 exact match
-        result2 = self.bf2.query(name)
-        if result2 == False:
-            pass
-        elif result2 == "FP":
-            reasonCodes += ["FP2"]
-        else:
-            reasonCodes += result2
+        # BF2 exact match for Interest
+        if netType == "I" or self.ignoreNetType2:
+            result2 = self.bf2.query(name)
+            if result2 == False:
+                pass
+            elif result2 == "FP":
+                reasonCodes += ["FP2"]
+            else:
+                reasonCodes += result2
 
         return len(reasonCodes) > 0, list(set(reasonCodes))

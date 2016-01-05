@@ -28,6 +28,10 @@ def parseCommandLine():
                         help="BF1 size")
     parser.add_argument("--bf2", type=int, default=1024,
                         help="BF2 size")
+    parser.add_argument("--bf3", type=int, default=1024,
+                        help="BF3 size; 0 disables BF3")
+    parser.add_argument("--ignorenettype2", action="store_true",
+                        help="match against BF2 even if not Interest")
     parser.add_argument("--fib", default="NaiveFib",
                         help="FIB type or expression")
     parser.add_argument("--pit", default="NaivePit",
@@ -44,7 +48,7 @@ def makeTable(nic, arg):
     return eval(arg, table.__dict__, dict(nic=nic))
 
 def run(args):
-    nic = Nic(args.bf1, args.bf2)
+    nic = Nic(args.bf1, args.bf2, args.bf3, ignoreNetType2=args.ignorenettype2)
     fib = makeTable(nic, args.fib)
     pit = makeTable(nic, args.pit)
     cs = makeTable(nic, args.cs)
