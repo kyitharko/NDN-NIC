@@ -34,7 +34,7 @@ while read -r -a THRESHOLDS; do
   FP2THRESHOLD=${THRESHOLDS[1]}
   FP1THRESHOLD=${THRESHOLDS[2]}
   KEY1=$KEY.degree-${DEGREETHRESHOLD}_fp2-${FP2THRESHOLD}_fp1-${FP1THRESHOLD}
-  $R/analyze/one.sh $KEY1 --cs="AitCs(nic,AitCs.Options(degreeThreshold=$DEGREETHRESHOLD, fp2Threshold=0.01*$FP2THRESHOLD, fp1Threshold=0.01*$FP1THRESHOLD))" "$@" > /dev/null
+  NO_QUICK_ANALYZE=1 $R/analyze/one.sh $KEY1 --cs="AitCs(nic,AitCs.Options(degreeThreshold=$DEGREETHRESHOLD, fp2Threshold=0.01*$FP2THRESHOLD, fp1Threshold=0.01*$FP1THRESHOLD))" "$@" > /dev/null
 
   if [[ ! -f $KEY1.fp-classify.tsv ]]; then
     gawk -f $R/analyze/fp-classify.awk $KEY1.*.nd.tsv > $KEY1.fp-classify.tsv

@@ -52,7 +52,7 @@ while read -r -a SIZES; do
     print '$BF1SIZE', '$BF2SIZE', "+", totalNicAccepts, totalFalsePositives,
           totalNicAccepts==0 ? 0 : totalFalsePositives/totalNicAccepts
   }
-  ' $KEY1.analyze.tsv
+  ' $KEY1.quick-analyze.tsv
 done < $SIZES_FILE >> $KEY.vary-bf-size.tsv
 
 column -t $KEY.vary-bf-size.tsv

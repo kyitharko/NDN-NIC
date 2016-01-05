@@ -26,7 +26,7 @@ for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
 done
 wait
 
-if [[ ! -f $KEY.analyze.tsv ]]; then
+if [[ ! -f $KEY.quick-analyze.tsv ]] && [[ -z $NO_QUICK_ANALYZE ]]; then
 (
   echo -n host
   echo -ne '\t'
@@ -56,7 +56,9 @@ if [[ ! -f $KEY.analyze.tsv ]]; then
     echo
   done
 
-) > $KEY.analyze.tsv
+) > $KEY.quick-analyze.tsv
 fi
 
-column -t $KEY.analyze.tsv
+if [[ -f $KEY.quick-analyze.tsv ]]; then
+  column -t $KEY.quick-analyze.tsv
+fi
