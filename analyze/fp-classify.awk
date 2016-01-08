@@ -22,7 +22,7 @@ BEGIN {
   classify["D","CS2"] = category_PT
 
   if (!noHeader) {
-    print "FILENAME", "ARRIVALS", "ACCEPTS", "BF", "PM", "BF+PM", "PT", "BF+PT", "PM+PT", "BF+PM+PT"
+    print "host", "nArrivals", "nAccepts", "BF", "PM", "BF+PM", "PT", "BF+PT", "PM+PT", "BF+PM+PT"
   }
 }
 BEGINFILE {
@@ -47,13 +47,16 @@ $4=="DROP" && $5!="DROP" {
   ++nFps[category]
 }
 ENDFILE {
+  n = split(FILENAME, a, ".")
+  host = a[n-2]
+
   nArrivalsTotal += nArrivals
   nAcceptsTotal += nAccepts
   for (i=1; i<=category_MAX; ++i) {
     nFpsTotal[i] += nFps[i]
   }
 
-  print FILENAME, nArrivals, nAccepts, nFps[1], nFps[2], nFps[3], nFps[4], nFps[5], nFps[6], nFps[7]
+  print host, nArrivals, nAccepts, nFps[1], nFps[2], nFps[3], nFps[4], nFps[5], nFps[6], nFps[7]
 }
 END {
   if (!noFooter) {

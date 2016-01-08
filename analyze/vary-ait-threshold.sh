@@ -18,19 +18,17 @@ fi
 shift 2
 
 (
-  echo -n DEGREE
+  echo -n degree
   echo -ne '\t'
-  echo -n FP2LOW
+  echo -n fp2low
   echo -ne '\t'
-  echo -n FP2HIGH
+  echo -n fp2high
   echo -ne '\t'
-  echo -n FP1LOW
+  echo -n fp1low
   echo -ne '\t'
-  echo -n FP1HIGH
+  echo -n fp1high
   echo -ne '\t'
-  echo -n HOST
-  echo -ne '\t'
-  echo -n $(echo | gawk -f $R/analyze/fp-classify.awk | head -1 | cut -f2-)
+  echo -n $(echo | gawk -f $R/analyze/fp-classify.awk | head -1)
   echo
 ) > $KEY.vary-ait-threshold.tsv
 
@@ -53,13 +51,13 @@ while read -r -a THRESHOLDS; do
     FP1THRESHOLD="(0.$FP1LOW,0.$FP1HIGH)"
   fi
 
-  NO_QUICK_ANALYZE=1 $R/analyze/one.sh $KEY1 --cs="AitCs(nic, AitCs.Options(degreeThreshold=$DEGREE, fp2Threshold=$FP2THRESHOLD, fp1Threshold=$FP2THRESHOLD))" "$@"
+  NO_QUICK_ANALYZE=1 $R/analyze/one.sh $KEY1 --cs="AitCs(nic,AitCs.Options(degreeThreshold=$DEGREE,fp2Threshold=$FP2THRESHOLD,fp1Threshold=$FP2THRESHOLD),trace=open('KEY.HOSTNAME.ait-trace.log','w'))" "$@"
 
   if [[ ! -f $KEY1.fp-classify.tsv ]]; then
     gawk -f $R/analyze/fp-classify.awk $KEY1.*.nd.tsv > $KEY1.fp-classify.tsv
   fi
   tail -n+2 $KEY1.fp-classify.tsv | \
-  sed -e "s/$KEY1\.\([^.]*\)\.nd\.tsv/\1/" -e "s/^/$DEGREE\t$FP2LOW\t$FP2HIGH\t$FP1LOW\t$FP1HIGH\t/"
+  sed -e "s/^/$DEGREE\t$FP2LOW\t$FP2HIGH\t$FP1LOW\t$FP1HIGH\t/"
 done < $THRESHOLDS_FILE >> $KEY.vary-ait-threshold.tsv
 
 column -t $KEY.vary-ait-threshold.tsv
