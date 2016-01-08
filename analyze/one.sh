@@ -22,7 +22,10 @@ for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
   while [[ $(jobs -p | wc -l) -ge $JOBS ]]; do
     sleep 0.1
   done
-  python2 $R/nicsim/nicsim.py "$@" < $H.ttt.tsv > $KEY.$H.nd.tsv &
+  PARAMARRAY=("$@")
+  PARAMARRAY=(${PARAMARRAY[@]//HOSTNAME/$H})
+  PARAMARRAY=(${PARAMARRAY[@]//KEY/$KEY})
+  python2 $R/nicsim/nicsim.py "${PARAMARRAY[@]}" < $H.ttt.tsv > $KEY.$H.nd.tsv &
 done
 wait
 
