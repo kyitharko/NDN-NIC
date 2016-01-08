@@ -159,7 +159,7 @@ class AitNode(NameTreeNode):
         self._clearCs2Fields()
 
         for child in self.iterChildren():
-            if child.hasCs1:
+            if child._isPmfpReductionEligible():
                 self.nCs1Descendants += 1
                 self.shallowestCs1Dist = 1
                 self.shallowestCs1Ptr = child
@@ -186,6 +186,9 @@ class AitNode(NameTreeNode):
         if self.parent is not None:
             self.parent._updateCs2Fields()
 
+    def _isPmfpReductionEligible(self):
+        return self.hasCs1 and len(self.children) <= self.tree.degreeThreshold
+
     def findReduction2(self):
         """
         Find a target for FP2 reduction within this subtree.
@@ -210,20 +213,29 @@ class AitNode(NameTreeNode):
         """
         Find a target for PMFP reduction within this subtree.
         """
-        if self.hasCs1:
+        if self._isPmfpReductionEligible():
             return self
         if self.shallowestCs1Dist is None:
             return None
         return self.shallowestCs1Ptr.findReductionPmfp()
 
+DEFAULT_DEGREE_THRESHOLD = 64
+
 class Ait(NameTree):
     """
     Acceptable Interest Tree.
     """
-    def __init__(self, bf1, bf2, trace=None):
+    def __init__(self, bf1, bf2, degreeThreshold=DEFAULT_DEGREE_THRESHOLD, trace=None):
+        """
+        Constructor.
+
+        :param int degreeThreshold: maximum degree of a node for eligibility in findReductionPmfp
+        :param file trace: a file-like object to write trace logs, or None to disable trace logs
+        """
         NameTree.__init__(self, node=AitNode)
         self.bf1 = bf1
         self.bf2 = bf2
+        self.degreeThreshold = degreeThreshold
         self.trace = trace
 
         self.nCs1 = 0
@@ -245,6 +257,7 @@ class Ait(NameTree):
         * All nodes are covered by either CS1 key or CS2 key.
         * A node is not both CS1 and CS2.
         * CS1 key has no labelled descendants.
+        * CS2 node degree is within threshold.
         """
         def checkSubtree(node, isCoveredByCs1):
             if isCoveredByCs1:
@@ -252,6 +265,7 @@ class Ait(NameTree):
                 assert not node.hasCs2
             elif node.hasCs2:
                 assert not node.hasCs1
+                assert len(node.children) <= self.degreeThreshold
             elif node.hasCs1:
                 assert not node.hasCs2
                 isCoveredByCs1 = True
@@ -264,7 +278,7 @@ class Ait(NameTree):
 class AitCsOptions:
     useFreeFib1 = False
     """Use "free" CS1 key where FIB1 key exists."""
-    degreeThreshold = 64
+    degreeThreshold = DEFAULT_DEGREE_THRESHOLD
     """Node degree threshold. A node exceeding this threshold is labelled CS1."""
     fp2Threshold = 0.1
     """BF2 false positive thresholds.
@@ -299,7 +313,7 @@ class AitCs:
         self.options = options
         self.bf1 = nic.bf1
         self.bf2 = nic.bf2
-        self.ait = Ait(self.bf1, self.bf2, trace=trace)
+        self.ait = Ait(self.bf1, self.bf2, degreeThreshold=options.degreeThreshold, trace=trace)
 
         self.bf2Low, self.bf2High = self._computeLimits(self.bf2, "BF2", self.options.bf2Capacity, self.options.fp2Threshold)
         self.bf1Low, self.bf1High = self._computeLimits(self.bf1, "BF1", self.options.bf1Capacity, self.options.fp1Threshold)
@@ -353,6 +367,7 @@ class AitCs:
             # and therefore the new nodes are not covered.
             # Otherwise, the parent is covered by a CS1 key either on itself or an ancestor,
             # which implies new nodes are also covered by that CS1 key.
+            self._trace("parentDegree %s degree=%d" % (parentNode.name, len(parentNode.children)))
             return
 
         # use "free" CS1 key
