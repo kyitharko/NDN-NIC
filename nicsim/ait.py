@@ -280,7 +280,7 @@ class AitCsOptions:
     """Use "free" CS1 key where FIB1 key exists."""
     degreeThreshold = DEFAULT_DEGREE_THRESHOLD
     """Node degree threshold. A node exceeding this threshold is labelled CS1."""
-    fp2Threshold = 0.1
+    fp2Threshold = (None, 0.1, 2)
     """BF2 false positive thresholds.
        Either specify (low, high) limits as a tuple,
        or specify (None, high, multipler) to compute low capacity limit as high - multiplier*degreeThreshold."""
@@ -288,7 +288,7 @@ class AitCsOptions:
     """BF2 capacity, specified as number of keys. This precedes fp2Threshold.
        Either specify (low, high) limits as a tuple,
        or specify (None, high, multipler) to compute low capacity limit as high - multiplier*degreeThreshold."""
-    fp1Threshold = 0.1
+    fp1Threshold = (None, 0.1, 2)
     """BF1 false positive threshold.
        Either specify (low, high) limits as a tuple,
        or specify (None, high, multipler) to compute low capacity limit as high - multiplier*degreeThreshold."""
