@@ -15,6 +15,11 @@ shift
 
 JOBS=${JOBS:-$(grep -c ^processor /proc/cpuinfo)}
 
+PARAMS=''
+for PARAM in "$@"; do
+  PARAMS="$PARAMS \"${PARAM//\"/\\\"}\""
+done
+
 for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
   if [[ -f $KEY.$H.nd.tsv ]]; then
     continue
@@ -22,10 +27,10 @@ for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
   while [[ $(jobs -p | wc -l) -ge $JOBS ]]; do
     sleep 0.1
   done
-  PARAMARRAY=("$@")
-  PARAMARRAY=(${PARAMARRAY[@]//HOSTNAME/$H})
-  PARAMARRAY=(${PARAMARRAY[@]//KEY/$KEY})
-  python2 $R/nicsim/nicsim.py "${PARAMARRAY[@]}" < $H.ttt.tsv > $KEY.$H.nd.tsv &
+  PARAMS1=$PARAMS
+  PARAMS1=${PARAMS1//KEY/$KEY}
+  PARAMS1=${PARAMS1//HOSTNAME/$H}
+  bash -c "python2 $R/nicsim/nicsim.py --comment=$KEY.$H $PARAMS1" < $H.ttt.tsv > $KEY.$H.nd.tsv &
 done
 wait
 
