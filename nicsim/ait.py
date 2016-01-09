@@ -187,7 +187,7 @@ class AitNode(NameTreeNode):
             self.parent._updateCs2Fields()
 
     def _isPmfpReductionEligible(self):
-        return self.hasCs1 and len(self.children) <= self.tree.degreeThreshold
+        return self.hasCs1 and len(self.children) <= self.tree.degreeThreshold(self)
 
     def findReduction2(self):
         """
@@ -219,7 +219,27 @@ class AitNode(NameTreeNode):
             return None
         return self.shallowestCs1Ptr.findReductionPmfp()
 
-DEFAULT_DEGREE_THRESHOLD = 64
+class DegreeThreshold:
+    """
+    Computes the upper threshold of AIT node degree.
+    """
+    def __init__(self, *opts):
+        """
+        Construct from a vector of integers.
+        The integer at i-th position is the degree threshold of a node with i-component name.
+        The last integer is the degree threshold of a node with a longer name.
+        """
+        self.vector = [ int(x) for x in opts ]
+        self.max = max(self.vector)
+
+    def __call__(self, node):
+        """
+        Return the degree threshold for a node.
+        """
+        nComponents = nameutil.countComponents(node.name)
+        return self.vector[nComponents] if nComponents < len(self.vector) else self.vector[-1]
+
+DEFAULT_DEGREE_THRESHOLD = DegreeThreshold(64)
 
 class Ait(NameTree):
     """
@@ -229,7 +249,7 @@ class Ait(NameTree):
         """
         Constructor.
 
-        :param int degreeThreshold: maximum degree of a node for eligibility in findReductionPmfp
+        :param DegreeThreshold degreeThreshold: maximum degree of a node for eligibility in findReductionPmfp
         :param file trace: a file-like object to write trace logs, or None to disable trace logs
         """
         NameTree.__init__(self, node=AitNode)
@@ -265,7 +285,7 @@ class Ait(NameTree):
                 assert not node.hasCs2
             elif node.hasCs2:
                 assert not node.hasCs1
-                assert len(node.children) <= self.degreeThreshold
+                assert len(node.children) <= self.degreeThreshold(node)
             elif node.hasCs1:
                 assert not node.hasCs2
                 isCoveredByCs1 = True
@@ -331,11 +351,11 @@ class AitCs:
 
         if len(capacityOption) == 2:
             low, high = capacityOption
-            if high - low < self.options.degreeThreshold:
+            if high - low < self.options.degreeThreshold.max:
                 sys.stderr.write("%s capacity limits %f, %f are closer than degreeThreshold\n" % (bfLabel, low, high))
         elif len(capacityOption) == 3:
             low, high, multiplier = capacityOption
-            low = high - multiplier * self.options.degreeThreshold
+            low = high - multiplier * self.options.degreeThreshold.max
         else:
             raise ValueError("invalid %s threshold or capacity" % bfLabel)
 
@@ -379,7 +399,7 @@ class AitCs:
             node.labelCs2()
 
         # check degree threshold
-        if parentNode is not None and len(parentNode.children) > self.options.degreeThreshold:
+        if parentNode is not None and len(parentNode.children) > self.options.degreeThreshold(parentNode):
             assert parentNode.hasCs2
             self._trace("exceedDegree %s degree=%d" % (parentNode.name, len(parentNode.children)))
             parentNode.labelCs1()
@@ -434,6 +454,7 @@ class AitCs:
         self.ait.checkInvariants()
 
 AitCs.Options = AitCsOptions
+AitCs.DegreeThreshold = DegreeThreshold
 
 if __name__ == "__main__":
     from nic import Nic

@@ -41,17 +41,19 @@ def getPrefix1(name):
         return None
     pos = name.rfind("/")
     assert pos >= 0
-    if pos == 0:
-        return "/"
-    return name[0:pos]
+    return "/" if pos == 0 else name[0:pos]
 
 def getLastComponent(name):
     """
     Get last component of a name.
     """
-    if name == "/":
-        return None
-    return name[name.rfind("/")+1:]
+    return None if name == "/" else name[name.rfind("/")+1:]
+
+def countComponents(name):
+    """
+    Count number of components in a name.
+    """
+    return 0 if name == "/" else name.count("/")
 
 if __name__ == "__main__":
     for name in ["/", "/example", "/example/hello/world"]:
@@ -59,4 +61,5 @@ if __name__ == "__main__":
         print "getPrefixes(name)=%s" % getPrefixes(name)
         print "getPrefix1(name)=%s" % getPrefix1(name)
         print "getLastComponent(name)=%s" % getLastComponent(name)
+        print "countComponents(name)=%d" % countComponents(name)
         print
