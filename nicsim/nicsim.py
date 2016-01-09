@@ -24,6 +24,8 @@ from nic_sim import NicSim
 def parseCommandLine():
     import argparse
     parser = argparse.ArgumentParser(description="Run NDN-NIC simulation.")
+    parser.add_argument("--comment", action="append",
+                        help="ignored; may be used to identify running process")
     parser.add_argument("--bf1", type=int, default=1024,
                         help="BF1 size")
     parser.add_argument("--bf2", type=int, default=1024,
