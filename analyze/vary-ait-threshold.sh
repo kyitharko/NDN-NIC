@@ -17,6 +17,11 @@ if [[ -z $KEY ]] || [[ ! -r $THRESHOLDS_FILE ]]; then
 fi
 shift 2
 
+PARAMS=''
+for PARAM in "$@"; do
+  PARAMS="$PARAMS \"${PARAM//\"/\\\"}\""
+done
+
 (
   echo -n degree
   echo -ne '\t'
@@ -51,11 +56,22 @@ while read -r -a THRESHOLDS; do
     FP1THRESHOLD="(0.$FP1LOW,0.$FP1HIGH)"
   fi
 
-  NO_QUICK_ANALYZE=1 $R/analyze/one.sh $KEY1 --cs="AitCs(nic, AitCs.Options(degreeThreshold=AitCs.DegreeThreshold($DEGREE), fp2Threshold=$FP2THRESHOLD, fp1Threshold=$FP2THRESHOLD), trace=open('KEY.HOSTNAME.ait-trace.log','w'))" "$@"
+  echo -n "NO_QUICK_ANALYZE=1 $R/analyze/one.sh $KEY1 --cs=\"AitCs(nic, AitCs.Options(degreeThreshold=AitCs.DegreeThreshold($DEGREE), fp2Threshold=$FP2THRESHOLD, fp1Threshold=$FP2THRESHOLD), trace=open('KEY.HOSTNAME.ait-trace.log','w'))\" $PARAMS"
 
   if [[ ! -f $KEY1.fp-classify.tsv ]]; then
-    gawk -f $R/analyze/fp-classify.awk $KEY1.*.nd.tsv > $KEY1.fp-classify.tsv
+    echo -n " ; gawk -f $R/analyze/fp-classify.awk $KEY1.*.nd.tsv > $KEY1.fp-classify.tsv"
   fi
+  echo
+done < $THRESHOLDS_FILE | $R/analyze/parallelize.sh
+
+while read -r -a THRESHOLDS; do
+  DEGREE=${THRESHOLDS[0]}
+  FP2LOW=${THRESHOLDS[1]}
+  FP2HIGH=${THRESHOLDS[2]}
+  FP1LOW=${THRESHOLDS[3]}
+  FP1HIGH=${THRESHOLDS[4]}
+  KEY1=$KEY.degree-${DEGREE//,/-}_fp2-${FP2LOW}-${FP2HIGH}_fp1-${FP1LOW}-${FP1HIGH}
+
   tail -n+2 $KEY1.fp-classify.tsv | \
   sed -e "s/^/$DEGREE\t$FP2LOW\t$FP2HIGH\t$FP1LOW\t$FP1HIGH\t/"
 done < $THRESHOLDS_FILE >> $KEY.vary-ait-threshold.tsv
