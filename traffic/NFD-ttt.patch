@@ -1,5 +1,5 @@
 diff --git a/daemon/fw/forwarder.cpp b/daemon/fw/forwarder.cpp
-index 20428c5..c8dfcf3 100644
+index 280c713..ee4bbdf 100644
 --- a/daemon/fw/forwarder.cpp
 +++ b/daemon/fw/forwarder.cpp
 @@ -26,6 +26,7 @@
@@ -21,7 +21,7 @@ index 20428c5..c8dfcf3 100644
 +  }
 +
    // if multi-access face, drop
-   if (inFace.isMultiAccess()) {
+   if (inFace.getLinkType() == ndn::nfd::LINK_TYPE_MULTI_ACCESS) {
      NFD_LOG_DEBUG("onInterestLoop face=" << inFace.getId() <<
 @@ -230,6 +237,18 @@ Forwarder::onContentStoreMiss(const Face& inFace,
      }
@@ -51,7 +51,7 @@ index 20428c5..c8dfcf3 100644
 +    Ttt::recordPacketArrival(interest, TttPacketDecision::CS);
 +  }
  
-   const_pointer_cast<Data>(data.shared_from_this())->setIncomingFaceId(FACEID_CONTENT_STORE);
+   data.setTag(make_shared<lp::IncomingFaceIdTag>(face::FACEID_CONTENT_STORE));
    // XXX should we lookup PIT for other Interests that also match csMatch?
 @@ -391,6 +414,23 @@ Forwarder::onIncomingData(Face& inFace, const Data& data)
      return;
@@ -87,10 +87,10 @@ index 20428c5..c8dfcf3 100644
 +  }
 +
    // accept to cache?
-   bool acceptToCache = inFace.isLocal();
+   bool acceptToCache = inFace.getScope() == ndn::nfd::FACE_SCOPE_LOCAL;
    if (acceptToCache) {
 diff --git a/daemon/table/cs.cpp b/daemon/table/cs.cpp
-index 674d333..eab1c0a 100644
+index 4550361..7d0f18d 100644
 --- a/daemon/table/cs.cpp
 +++ b/daemon/table/cs.cpp
 @@ -25,6 +25,7 @@
@@ -101,7 +101,7 @@ index 674d333..eab1c0a 100644
  #include "core/logger.hpp"
  #include "core/algorithm.hpp"
  
-@@ -111,6 +112,7 @@ Cs::insert(const Data& data, bool isUnsolicited)
+@@ -110,6 +111,7 @@ Cs::insert(const Data& data, bool isUnsolicited)
    }
    else {
      m_policy->afterInsert(it);
@@ -109,7 +109,7 @@ index 674d333..eab1c0a 100644
    }
  
    return true;
-@@ -201,6 +203,7 @@ Cs::setPolicyImpl(unique_ptr<Policy>& policy)
+@@ -200,6 +202,7 @@ Cs::setPolicyImpl(unique_ptr<Policy>& policy)
  {
    m_policy = std::move(policy);
    m_beforeEvictConnection = m_policy->beforeEvict.connect([this] (iterator it) {
@@ -160,7 +160,7 @@ index b2ea76c..905016c 100644
  }
  
 diff --git a/daemon/table/pit-entry.cpp b/daemon/table/pit-entry.cpp
-index 85ea19c..d7a98fb 100644
+index 22df4a4..86c5340 100644
 --- a/daemon/table/pit-entry.cpp
 +++ b/daemon/table/pit-entry.cpp
 @@ -24,6 +24,7 @@

@@ -12,8 +12,8 @@ from mininet.topo import SingleSwitchTopo
 from mininet.net import Mininet
 from mininet.cli import CLI
 
-from mnndn.ndn import NdnHost
-from mnndn.app import NdnPing,NdnPingServer
+from mnndn.ndn import NdnHost, NfdForwarder
+from mnndn.app import NdnPing, NdnPingServer
 
 from exp_traffic import makeTraffic
 
@@ -29,6 +29,8 @@ def parseCommandLine():
                         help='duration of emulation')
     parser.add_argument('--traffic', action='append', required=True,
                         help='traffic configuration string')
+    parser.add_argument('--cs', type=int, default=4096,
+                        help='ContentStore capacity')
     args = parser.parse_args()
 
     return args
@@ -36,7 +38,9 @@ def parseCommandLine():
 def run(args):
     topo = SingleSwitchTopo(k=args.k)
     net = Mininet(topo,
-                  host=functools.partial(NdnHost, rout=None,
+                  host=functools.partial(NdnHost,
+                       fw=functools.partial(NfdForwarder, csCapacity=args.cs),
+                       rout=None,
                        env=dict(
                          TTT_FACE=NDNNIC_FACEURI,
                          TTT_EPOCH=str(time.time()),

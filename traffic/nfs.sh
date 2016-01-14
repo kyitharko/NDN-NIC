@@ -46,4 +46,4 @@ fi
   done
 ) > /tmp/nfs-traffic.txt
 
-sudo PYTHONPATH=$PYTHONPATH ./exp.py --k $NHOSTS --duration $NFS_DURATION --traffic $(cat /tmp/nfs-traffic.txt)
+sudo PYTHONPATH=$PYTHONPATH ./exp.py --k $NHOSTS --duration $NFS_DURATION --traffic $(cat /tmp/nfs-traffic.txt) "$@"
