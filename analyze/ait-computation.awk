@@ -19,7 +19,7 @@ $1 == "reduction2" {
 $1 == "reduction1" {
   ++nReduction1
 }
-$1 == "reductionPmfp" {
+$1 == "reductionPmfp" && $4 != "none" {
   ++nReductionPmfp
 }
 $1 == "updateCs2Fields" {
