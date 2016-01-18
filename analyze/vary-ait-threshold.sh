@@ -2,9 +2,9 @@
 # Plot false positive rate as a function of AIT thresholds.
 # Usage: ./vary-ait-threshold.sh key thresholds params..
 #   key: prefix of output file names
-#   sizes: a TSV file where each line is a tuple of degreeThreshold,fp2Low,fp2High,fp1Low,fp1High;
-#          fp thresholds should omit leading "0.";
-#          specify <multiplier>x as low limit to have Ait compute low limit automatically
+#   thresholds: a TSV file where each line is a tuple of degreeThreshold,fp2Low,fp2High,fp1Low,fp1High,[FIB1|noFIB1];
+#               fp thresholds should omit leading "0.";
+#               specify <multiplier>x as low limit to have Ait compute low limit automatically
 #   params: passed to nicsim.py
 
 R="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
@@ -43,7 +43,14 @@ while read -r -a THRESHOLDS; do
   FP2HIGH=${THRESHOLDS[2]}
   FP1LOW=${THRESHOLDS[3]}
   FP1HIGH=${THRESHOLDS[4]}
-  KEY1=$KEY.degree-${DEGREE//,/-}_fp2-${FP2LOW}-${FP2HIGH}_fp1-${FP1LOW}-${FP1HIGH}
+  if [[ ${THRESHOLDS[5]} == "FIB1" ]]; then
+    KEYFREEFIB1="freeFib1"
+    FREEFIB1="useFreeFib1=True"
+  else
+    KEYFREEFIB1="noFib1"
+    FREEFIB1="useFreeFib1=False"
+  fi
+  KEY1=$KEY.degree-${DEGREE//,/-}_fp2-${FP2LOW}-${FP2HIGH}_fp1-${FP1LOW}-${FP1HIGH}_${KEYFREEFIB1}
 
   if [[ $FP2LOW == *x ]]; then
     FP2THRESHOLD="(None,0.$FP2HIGH,${FP2LOW::-1})"
@@ -56,7 +63,7 @@ while read -r -a THRESHOLDS; do
     FP1THRESHOLD="(0.$FP1LOW,0.$FP1HIGH)"
   fi
 
-  echo -n "NO_QUICK_ANALYZE=1 $R/analyze/one.sh $KEY1 --cs=\"AitCs(nic, AitCs.Options(degreeThreshold=AitCs.DegreeThreshold($DEGREE), fp2Threshold=$FP2THRESHOLD, fp1Threshold=$FP2THRESHOLD), trace=open('KEY.HOSTNAME.ait-trace.log','w'))\" $PARAMS"
+  echo -n "NO_QUICK_ANALYZE=1 $R/analyze/one.sh $KEY1 --cs=\"AitCs(nic, AitCs.Options($FREEFIB1,degreeThreshold=AitCs.DegreeThreshold($DEGREE), fp2Threshold=$FP2THRESHOLD, fp1Threshold=$FP2THRESHOLD), trace=open('KEY.HOSTNAME.ait-trace.log','w'))\" $PARAMS"
 
   if [[ ! -f $KEY1.fp-classify.tsv ]]; then
     echo -n " ; gawk -f $R/analyze/fp-classify.awk $KEY1.*.nd.tsv > $KEY1.fp-classify.tsv"

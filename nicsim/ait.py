@@ -113,7 +113,7 @@ class AitNode(NameTreeNode):
 
     def labelCs1(self):
         """
-        Add CS1 key for this node, and remove CS2 keys for descendants.
+        Add CS1 key for this node, and remove CS2 keys on descendants.
         """
         if self.hasCs1:
             return
@@ -187,7 +187,7 @@ class AitNode(NameTreeNode):
             self.parent._updateCs2Fields()
 
     def _isPmfpReductionEligible(self):
-        return self.hasCs1 and len(self.children) <= self.tree.degreeThreshold(self)
+        return self.hasCs1 and not self.hasFib1 and len(self.children) <= self.tree.degreeThreshold(self)
 
     def findReduction2(self):
         """
@@ -367,12 +367,17 @@ class AitCs:
     def insert(self, name):
         # update AIT
         newNodes = []
+        fib1NodeIndex = -1
         for prefix in nameutil.getPrefixes(name):
             isNewNode = prefix not in self.ait
             node = self.ait[prefix]
-            if isNewNode:
-                node.hasFib1 = "FIB1" in self.bf1.table.get(name, [])
-                newNodes.append(node)
+            if not isNewNode:
+                continue
+            node.hasFib1 = "FIB1" in self.bf1.table.get(prefix, [])
+            if node.hasFib1 and fib1NodeIndex < 0:
+                fib1NodeIndex = len(newNodes)
+            newNodes.append(node)
+
         node.inCs = True # node refers to the ait[name]
         self._trace("insert %s nNewNodes=%d" % (name, len(newNodes)))
         if len(newNodes) == 0:
@@ -391,8 +396,18 @@ class AitCs:
             return
 
         # use "free" CS1 key
-        if self.options.useFreeFib1:
-            raise NotImplementedError
+        if self.options.useFreeFib1 and fib1NodeIndex >= 0:
+            fib1Node = newNodes[fib1NodeIndex]
+            self._trace("useFreeFib1 %s" % fib1Node.name)
+            for node in newNodes[0:fib1NodeIndex]:
+                node.labelCs2()
+            fib1Node.labelCs1()
+            self.ait.checkInvariants()
+            return
+            # XXX This implementation does not handle FIB1 key deletion,
+            #     and also assumes FIB1 key has short names so that:
+            #     (a) FP2/FP1 reductions aren't necessary in this insertion;
+            #     (b) FP2/FP1 reductions on FIB1 key aren't prevented for future insertions.
 
         # add CS2 keys
         for node in newNodes:
