@@ -95,6 +95,8 @@ class XorHash:
         """
         h = 0
         j = 0
+        if len(s) * 8 > len(self.vector):
+            raise IndexError("input is too long for vector")
 
         for char in s:
             c = ord(char)
@@ -106,15 +108,20 @@ class XorHash:
         return h
 
     @staticmethod
-    def create(m, maxInputSize=500):
+    def create(m, maxInputSize=4096, polyFile=None):
         """
         Create a random XorHash.
 
         :param int m: exclusive upper bound of hash value; should be power of 2
         :param int maxInputSize: maximum size of input this hash function can accomodate
         """
-        import random
-        vector = [ random.randint(0, m-1) for j in range(maxInputSize * 8) ]
+        if polyFile is None:
+            with open("/dev/urandom", "r") as f:
+                return XorHash.create(m, maxInputSize, f)
+
+        import struct
+        vectorStruct = struct.Struct("!%dQ" % (maxInputSize * 8))
+        vector = [ (x % m) for x in vectorStruct.unpack(polyFile.read(vectorStruct.size)) ]
         return XorHash(vector)
 
 class HashGroup:

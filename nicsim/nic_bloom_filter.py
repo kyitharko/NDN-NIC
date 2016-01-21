@@ -22,10 +22,9 @@ class NicBloomFilter:
     Bloom filter for NDN-NIC simulator.
 
     This extends a regular Bloom filter:
-    (1) keys are records in a table, so that NicBloomFilter can determine
+    (1) Keys are recorded in a table, so that NicBloomFilter can determine
         whether a match in the regular Bloom filter is a false positive.
-    (2) each key is associated with one or more reason codes.
-
+    (2) Each key is associated with one or more reason codes.
     """
     @staticmethod
     def __makeHasher(hasher, m):

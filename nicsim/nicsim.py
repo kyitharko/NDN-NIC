@@ -26,12 +26,12 @@ def parseCommandLine():
     parser = argparse.ArgumentParser(description="Run NDN-NIC simulation.")
     parser.add_argument("--comment", action="append",
                         help="ignored; may be used to identify running process")
-    parser.add_argument("--bf1", type=int, default=1024,
-                        help="BF1 size")
-    parser.add_argument("--bf2", type=int, default=1024,
-                        help="BF2 size")
-    parser.add_argument("--bf3", type=int, default=1024,
-                        help="BF3 size; 0 disables BF3, -1 disables BF3 and causes BF2 to ignore netType")
+    parser.add_argument("--bf1", default="1024",
+                        help="BF1 configuration")
+    parser.add_argument("--bf2", default="1024",
+                        help="BF2 configuration")
+    parser.add_argument("--bf3", default="1024",
+                        help="BF3 configuration; 0 disables BF3, -1 disables BF3 and causes BF2 to ignore netType")
     parser.add_argument("--fib", default="NaiveFib",
                         help="FIB type or expression")
     parser.add_argument("--pit", default="NaivePit",
@@ -41,6 +41,40 @@ def parseCommandLine():
     args = parser.parse_args()
     return args
 
+def makeBf(arg):
+    """
+    Create a Bloom filter from a configuration string.
+
+    :param str arg: configuration string. Syntax:
+    * m: m buckets, default count HmacHash with default hash algorithm
+    * m,k: m buckets, k HmacHash with default hash algorithm
+    * m,k,algo: m buckets, k HmacHash with specified hash algorithm
+    * m,k,xor: m buckets, k XorHash with random polynomial terms
+    * m,k,xor,file: m buckets, k XorHash with polynomial terms from file
+
+    :return: NicBloomFilter instance
+    """
+    from hash_function import HmacHash, XorHash, HashGroup
+    from nic_bloom_filter import NicBloomFilter
+
+    args = arg.split(",")
+    if len(args) == 1:
+        return NicBloomFilter(int(args[0]))
+    else:
+        m, k = [ int(x) for x in args[0:2] ]
+        if len(args) == 2:
+            hasher = HashGroup([ HmacHash.create(m) for i in range(k) ])
+        else:
+            algo = args[2]
+            if algo != "xor":
+                hasher = HashGroup([ HmacHash.create(m, algo=algo) for i in range(k) ])
+            elif len(args) == 3:
+                hasher = HashGroup([ XorHash.create(m) for i in range(k) ])
+            else:
+                with open(args[3], "r") as polyFile:
+                    hasher = HashGroup([ XorHash.create(m, polyFile=polyFile) for i in range(k) ])
+        return NicBloomFilter(m, hasher)
+
 def makeTable(nic, arg):
     import table
     if '(' not in arg:
@@ -48,11 +82,21 @@ def makeTable(nic, arg):
     return eval(arg, table.__dict__, dict(nic=nic))
 
 def run(args):
-    bf3, ignoreNetType2 = (None, True) if args.bf3 == -1 else (args.bf3, False)
-    nic = Nic(args.bf1, args.bf2, bf3, ignoreNetType2=ignoreNetType2)
+    bf1 = makeBf(args.bf1)
+    bf2 = makeBf(args.bf2)
+    if args.bf3 == "0" or args.bf3 == "-1":
+        bf3 = None
+        ignoreNetType2 = args.bf3 == "-1"
+    else:
+        bf3 = makeBf(args.bf3)
+        ignoreNetType2 = False
+
+    nic = Nic(bf1, bf2, bf3, ignoreNetType2=ignoreNetType2)
+
     fib = makeTable(nic, args.fib)
     pit = makeTable(nic, args.pit)
     cs = makeTable(nic, args.cs)
+
     nicSim = NicSim(nic, fib=fib, pit=pit, cs=cs)
     nicSim.processTtt(sys.stdin, sys.stdout)
 
