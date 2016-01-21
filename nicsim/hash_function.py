@@ -64,6 +64,17 @@ class HmacHash:
         key = ''.join([ chr(random.randrange(256)) for i in range(16) ])
         return HmacHash(m, key, algo)
 
+def __load_cXorHash():
+    import os
+    sopath = os.path.join(os.path.dirname(__file__), "../xorhash-c/lib/python/xorhash.so")
+    import imp
+    try:
+        xorhash = imp.load_dynamic("xorhash", sopath)
+    except ImportError:
+        return None
+    return xorhash.XorHash
+cXorHash = __load_cXorHash()
+
 class XorHash:
     """
     Defines an XOR-based hash function.
@@ -81,6 +92,7 @@ class XorHash:
         :param vector list of pre-determined random numbers
         """
         self.vector = vector
+        self.cHasher = None if cXorHash is None else cXorHash(vector)
 
     def __repr__(self):
         return "XorHash(%s)" % self.vector
@@ -93,6 +105,9 @@ class XorHash:
         :return a hash value
         :rtype int
         """
+        if self.cHasher is not None:
+            return self.cHasher(s)
+
         h = 0
         j = 0
         if len(s) * 8 > len(self.vector):
@@ -145,6 +160,8 @@ class HashGroup:
         return len(self.functions)
 
 if __name__ == "__main__":
+    print "cXorHash is %s" % ("missing" if cXorHash is None else "available")
+
     TEST_INPUTS = ["/A/1", "/A/2", "/B/1", "/B/2"]
 
     hg = HashGroup([
