@@ -15,6 +15,25 @@ if [[ -z $KEY ]] || [[ ! -r $SIZES_FILE ]]; then
 fi
 shift 2
 
+PARAMS=''
+for PARAM in "$@"; do
+  PARAMS="$PARAMS \"${PARAM//\"/\\\"}\""
+done
+
+while read -r -a SIZES; do
+  BF1SIZE=${SIZES[0]}
+  BF2SIZE=${SIZES[1]}
+  BF3SIZE=${SIZES[2]}
+  KEY1=$KEY.bf1-${BF1SIZE}_bf2-${BF2SIZE}_bf3-${BF3SIZE}
+  BF3EXTRA1=$BF3EXTRA
+  if [[ $BF3SIZE == '0' ]] || [[ $BF3SIZE == '-1' ]]; then
+    BF3EXTRA1=''
+  fi
+  echo "$R/analyze/one.sh $KEY1 --bf1=$BF1SIZE$BF1EXTRA --bf2=$BF2SIZE$BF2EXTRA --bf3=$BF3SIZE$BF3EXTRA1 $PARAMS >/dev/null"
+done < $SIZES_FILE | $R/analyze/parallelize.sh
+
+exit
+
 (
   echo -n bf1size
   echo -ne '\t'
@@ -37,7 +56,6 @@ while read -r -a SIZES; do
   BF2SIZE=${SIZES[1]}
   BF3SIZE=${SIZES[2]}
   KEY1=$KEY.bf1-${BF1SIZE}_bf2-${BF2SIZE}_bf3-${BF3SIZE}
-  $R/analyze/one.sh $KEY1 --bf1=$BF1SIZE --bf2=$BF2SIZE --bf3=$BF2SIZE "$@" > /dev/null
 
   awk '
   BEGIN {
