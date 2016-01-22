@@ -12,6 +12,12 @@ JOBS1=$(echo $JOBS | cut -dx -f1)
 JOBS2=$(echo $JOBS | cut -dx -sf2-)
 JOBS2=${JOBS2:-1}
 
+if [[ $JOBS1 -le 1 ]]; then
+  JOBS=$JOBS2
+  cat /dev/stdin | bash
+  exit
+fi
+
 while read -r CMD; do
   while [[ $(jobs -p | wc -l) -ge $JOBS1 ]]; do
     sleep 0.1
