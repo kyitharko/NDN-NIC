@@ -29,7 +29,7 @@ ENDFILE {
   }
   delete maxDegree
 }
-' $KEY.*.ait-trace.log > tee max-degree.tsv
+' $KEY.*.ait-trace.log > max-degree.tsv
 
 sort -k3n -k4n max-degree.tsv \
 | gawk '
