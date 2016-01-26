@@ -1,6 +1,6 @@
 #!/usr/bin/gawk -f
 # Classify false positive reasons from existing NIC decision logs.
-# Usage: fp-classify.awk [-v noHeader=1] [-v noFooter=1] *.nd.tsv
+# Usage: ls *.nd.tsv.xz | fp-classify.awk [-v noHeader=1] [-v noFooter=1]
 
 BEGIN {
   SUBSEP = " "
@@ -25,30 +25,32 @@ BEGIN {
     print "host", "nArrivals", "nAccepts", "BF", "PM", "BF+PM", "PT", "BF+PT", "PM+PT", "BF+PM+PT"
   }
 }
-BEGINFILE {
+{
+  file = $1
+  if (file == "") { next }
+  n = split(file, a, ".")
+  host = a[n-3]
+
   nArrivals = 0
   nAccepts = 0
   for (i=1; i<=category_MAX; ++i) {
     nFps[i] = 0
   }
-}
-{
-  ++nArrivals
-}
-$5!="DROP" {
-  ++nAccepts
-}
-$4=="DROP" && $5!="DROP" {
-  nReasons = split($5, reasons, ",")
-  category = 0
-  for (i=1; i<=nReasons; ++i) {
-    category = or(category, classify[$2,reasons[i]])
+
+  while (("xzcat " file |& getline) > 0) {
+    if ($5!="DROP") {
+      ++nAccepts
+    }
+    if ($4=="DROP" && $5!="DROP") {
+      nReasons = split($5, reasons, ",")
+      category = 0
+      for (i=1; i<=nReasons; ++i) {
+        category = or(category, classify[$2,reasons[i]])
+      }
+      ++nFps[category]
+    }
+    ++nArrivals
   }
-  ++nFps[category]
-}
-ENDFILE {
-  n = split(FILENAME, a, ".")
-  host = a[n-2]
 
   nArrivalsTotal += nArrivals
   nAcceptsTotal += nAccepts

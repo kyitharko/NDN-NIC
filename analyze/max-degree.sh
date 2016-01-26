@@ -4,32 +4,37 @@
 
 R="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 
-KEY=$(ls *.ait-trace.log | awk 'BEGIN { FS=OFS="." } NR==1 { NF-=3; print }')
+KEY=$(ls *.ait-trace.log.xz | awk 'BEGIN { FS=OFS="." } NR==1 { NF-=4; print }')
 
-gawk '
+ls $KEY.*.ait-trace.log.xz | gawk '
 BEGIN {
   OFS = "\t"
 }
-$1 == "parentDegree" {
-  name = $2
-  degree = substr($3, 8)
-  if (degree > maxDegree[name]) {
-    maxDegree[name] = degree
+{
+  file = $1
+  n = split(file, a, ".")
+  host = a[n-3]
+
+  while (("xzcat " file |& getline) > 0) {
+    if ($1 == "parentDegree") {
+      name = $2
+      degree = substr($3, 8)
+      if (degree > maxDegree[name]) {
+        maxDegree[name] = degree
+      }
+    }
   }
-}
-ENDFILE {
-  n = split(FILENAME, a, ".")
-  HOST = a[n-2]
+
   for (name in maxDegree) {
     nComponents = split(name, a, "/") - 1
     if (name == "/") {
       nComponents = 0
     }
-    print HOST, name, nComponents, maxDegree[name]
+    print host, name, nComponents, maxDegree[name]
   }
   delete maxDegree
 }
-' $KEY.*.ait-trace.log > max-degree.tsv
+' > max-degree.tsv
 
 sort -k3n -k4n max-degree.tsv \
 | gawk '

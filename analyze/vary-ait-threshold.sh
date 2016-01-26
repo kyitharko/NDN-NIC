@@ -49,9 +49,13 @@ while read -r -a THRESHOLDS; do
   fi
 
   echo -n "NO_QUICK_ANALYZE=1 $R/analyze/one.sh $KEY1 --cs=\"AitCs(nic, AitCs.Options($FREEFIB1,degreeThreshold=AitCs.DegreeThreshold($DEGREE), fp2Threshold=$FP2THRESHOLD, fp1Threshold=$FP2THRESHOLD), trace=open('KEY.HOSTNAME.ait-trace.log','w'))\" $PARAMS"
+  echo -n " ; find $KEY1.*.ait-trace.log -exec xz -f {} \\; 2>/dev/null"
 
   if [[ ! -f $KEY1.fp-classify.tsv ]]; then
-    echo -n " ; gawk -f $R/analyze/fp-classify.awk $KEY1.*.nd.tsv > $KEY1.fp-classify.tsv"
+    echo -n " ; ls $KEY1.*.nd.tsv.xz | gawk -f $R/analyze/fp-classify.awk > $KEY1.fp-classify.tsv"
+  fi
+  if [[ ! -f $KEY1.ait-computation.tsv ]]; then
+    echo -n " ; ls $KEY1.*.ait-trace.log.xz | gawk -f $R/analyze/ait-computation.awk > $KEY1.ait-computation.tsv"
   fi
   echo
 done < $THRESHOLDS_FILE | $R/analyze/parallelize.sh
