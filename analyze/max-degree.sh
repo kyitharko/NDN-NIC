@@ -24,6 +24,7 @@ BEGIN {
       }
     }
   }
+  close("xzcat " file)
 
   for (name in maxDegree) {
     nComponents = split(name, a, "/") - 1

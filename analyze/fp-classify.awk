@@ -51,6 +51,7 @@ BEGIN {
     }
     ++nArrivals
   }
+  close("xzcat " file)
 
   nArrivalsTotal += nArrivals
   nAcceptsTotal += nAccepts

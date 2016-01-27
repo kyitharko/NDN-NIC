@@ -32,6 +32,7 @@ BEGIN {
       updateCs2Fields_nChildren += int(substr($3, 11))
     }
   }
+  close("xzcat " file)
 
   print host, nReduction2, nReduction1, nReductionPmfp, updateCs2Fields_nChildren
 }
