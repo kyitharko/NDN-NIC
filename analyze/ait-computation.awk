@@ -9,7 +9,7 @@ BEGIN {
 }
 {
   file = $1
-  if (file == "") { continue }
+  if (file == "") { next }
   n = split(file, a, ".")
   host = a[n-3]
 
