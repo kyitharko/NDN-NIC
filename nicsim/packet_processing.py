@@ -60,7 +60,7 @@ class TreeCs:
         node = self.tree[name]
         node.inCs = False
 
-        while node is not None and node.inCs is False and count(node.children) == 0:
+        while node is not None and node.inCs is False and len(node.children) == 0:
             parent = node.parent
             del self.tree[node.name]
             node = parent
