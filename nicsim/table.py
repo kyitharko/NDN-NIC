@@ -22,6 +22,9 @@ import nameutil
 from ait import AitCs
 
 class NaiveFib:
+    """
+    A FIB that adds every entry name to BF1.
+    """
     def __init__(self, nic):
         self.bf1 = nic.bf1
 
@@ -32,6 +35,9 @@ class NaiveFib:
         self.bf1.remove(name, "FIB1")
 
 class NaivePit:
+    """
+    A PIT that adds every entry name to BF3.
+    """
     def __init__(self, nic):
         self.bf, self.reasonCode = (nic.bf1, "PIT1") if nic.bf3 is None else (nic.bf3, "PIT3")
 
@@ -42,8 +48,10 @@ class NaivePit:
         self.bf.remove(name, self.reasonCode)
 
 class NaiveCs:
+    """
+    A CS that adds prefixes of every entry name to BF2.
+    """
     def __init__(self, nic):
-        self.bf1 = nic.bf1
         self.bf2 = nic.bf2
 
     def insert(self, name):
@@ -55,3 +63,29 @@ class NaiveCs:
         prefixes = nameutil.getPrefixes(name)
         for prefix in prefixes:
             self.bf2.remove(prefix, "CS2")
+
+class BasicCs:
+    """
+    A CS that adds prefixes of every entry name to BF2 except those covered by a FIB1 key.
+    """
+    def __init__(self, nic):
+        self.bf1 = nic.bf1
+        self.bf2 = nic.bf2
+
+    def insert(self, name):
+        prefixes = nameutil.getPrefixes(name)
+        for prefix in prefixes:
+            if "FIB1" in self.bf1.table.get(prefix, []):
+                self.bf1.add(prefix, "CS1")
+                break
+            else:
+                self.bf2.add(prefix, "CS2")
+
+    def erase(self, name):
+        prefixes = nameutil.getPrefixes(name)
+        for prefix in prefixes:
+            if "CS1" in self.bf1.table.get(prefix, []):
+                self.bf1.remove(prefix, "CS1")
+                break
+            else:
+                self.bf2.remove(prefix, "CS2")
