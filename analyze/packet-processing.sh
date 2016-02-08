@@ -31,9 +31,14 @@ for KEY1 in $(ls $KEY.*.nd.tsv.xz | awk 'BEGIN { FS=OFS="." } { NF-=4; print }' 
   fi
   echo -n $(awk 'BEGIN { FS="\t" } { sum+=$2 } END { print sum }' $KEY1.packet-processing-subtotal.tsv)
 
-  if [[ -f $KEY1.ait-computation.tsv ]]; then
+  AITTRACES=($KEY1.*.ait-trace.log.xz)
+  if [[ -f "${AITTRACES[0]}" ]]; then
     echo -ne '\t'
-    echo -n $(awk 'BEGIN { FS="\t" } NR>1 { sum+=$6 } END { print sum }' $KEY1.ait-computation.tsv)
+    if [[ -f $KEY1.ait-computation.tsv ]]; then
+      echo -n $(awk 'BEGIN { FS="\t" } NR>1 { sum+=$6 } END { print sum }' $KEY1.ait-computation.tsv)
+    else
+      echo -n 'MISSING'
+    fi
   fi
 
   echo
