@@ -64,11 +64,11 @@ while read -r -a SIZES; do
   NR > 1 {
     totalNicAccepts += $4
     totalFalsePositives += $5
-    print '$BF1SIZE', '$BF2SIZE', '$BF3SIZE', $1, $4, $5,
+    print "'$BF1SIZE'", "'$BF2SIZE'", "'$BF3SIZE'", $1, $4, $5,
           $4==0 ? 0 : $5/$4
   }
   END {
-    print '$BF1SIZE', '$BF2SIZE', '$BF3SIZE', "+", totalNicAccepts, totalFalsePositives,
+    print "'$BF1SIZE'", "'$BF2SIZE'", "'$BF3SIZE'", "+", totalNicAccepts, totalFalsePositives,
           totalNicAccepts==0 ? 0 : totalFalsePositives/totalNicAccepts
   }
   ' $KEY1.quick-analyze.tsv
