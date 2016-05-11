@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run simulation on *.ttt.tsv with one set of parameters, and do quick analysis.
+# Run simulation on *.ttt.tsv with one set of parameters, and do quick analysis.anal
 # Usage: ./one.sh key params..
 #   key: prefix of output file names
 #   params: passed to nicsim.py
@@ -25,7 +25,7 @@ for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
   PARAMS1=$PARAMS
   PARAMS1=${PARAMS1//KEY/$KEY}
   PARAMS1=${PARAMS1//HOSTNAME/$H}
-  echo "python2 $R/nicsim/nicsim.py --comment=$KEY.$H $PARAMS1 < $H.ttt.tsv | xz > $KEY.$H.nd.tsv.xz"
+  echo "python2 $R/nicsim/nicsim.py --comment=$KEY.$H $PARAMS1 --nd >(xz > $KEY.$H.nd.tsv.xz) --bfu >(xz > $KEY.$H.bfu.tsv.xz) < $H.ttt.tsv"
 done | $R/analyze/parallelize.sh
 
 
@@ -42,13 +42,17 @@ if [[ ! -f $KEY.quick-analyze.tsv ]] && [[ -z $NO_QUICK_ANALYZE ]]; then
   echo -n nFalsePositives
   echo -ne '\t'
   echo -n nFalseNegatives
+  echo -ne '\t'
+  echo -n nTableChanges
+  echo -ne '\t'
+  echo -n nBfUpdates
   echo
 
   for H in $(ls *.ttt.tsv | sed 's/.ttt.tsv//'); do
     echo -n $H
     echo -ne '\t'
     xzcat $KEY.$H.nd.tsv.xz | awk '
-    BEGIN { OFS = "\t" }
+    BEGIN { OFS = "\t"; ORS = "" }
     { ++nPackets }
     $4 != "DROP" { ++nSwAccepts }
     $5 != "DROP" { ++nNicAccepts }
@@ -56,6 +60,14 @@ if [[ ! -f $KEY.quick-analyze.tsv ]] && [[ -z $NO_QUICK_ANALYZE ]]; then
     $4 != "DROP" && $5 == "DROP" { ++nFalseNegatives }
     END { print 0 + nPackets, 0 + nSwAccepts, 0 + nNicAccepts, 0 + nFalsePositives, 0 + nFalseNegatives }
     '
+    echo -ne '\t'
+    xzcat $KEY.$H.bfu.tsv.xz | awk '
+    BEGIN { OFS = "\t"; ORS = "" }
+    { ++nTableChanges }
+    $5 != 0 || $6 != 0 || $7 != 0 || $8 != 0 || $9 != 0 || $10 != 0 { ++nBfUpdates }
+    END { print 0 + nTableChanges, 0 + nBfUpdates }
+    '
+    echo
   done
 ) > $KEY.quick-analyze.tsv
 fi

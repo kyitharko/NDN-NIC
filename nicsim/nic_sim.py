@@ -94,7 +94,7 @@ class NicSim:
                 print >>ndFile, "\t".join(columns)
             elif len(columns) == 4:
                 bfuCounts = self.processTableChange(*columns)
-                columns.append(",".join([ str(c) for c in bfuCounts]))
+                columns += [ str(c) for c in bfuCounts]
                 print >>bfuFile, "\t".join(columns)
 
 if __name__ == "__main__":
