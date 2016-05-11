@@ -32,6 +32,10 @@ def parseCommandLine():
                         help="BF2 configuration")
     parser.add_argument("--bf3", default="1024",
                         help="BF3 configuration; 0 disables BF3, -1 disables BF3 and causes BF2 to ignore netType")
+    parser.add_argument("--nd", type=argparse.FileType('w'),
+                        help="NIC decision log; stdout if unspecified")
+    parser.add_argument("--bfu", type=argparse.FileType('w'),
+                        help="BF update log; stdout if unspecified")
     parser.add_argument("--fib", default="NaiveFib",
                         help="FIB type or expression")
     parser.add_argument("--pit", default="NaivePit",
@@ -91,6 +95,9 @@ def run(args):
         bf3 = makeBf(args.bf3)
         ignoreNetType2 = False
 
+    ndFile = sys.stdout if args.nd is None else args.nd
+    bfuFile = sys.stdout if args.bfu is None else args.bfu
+
     nic = Nic(bf1, bf2, bf3, ignoreNetType2=ignoreNetType2)
 
     fib = makeTable(nic, args.fib)
@@ -98,7 +105,7 @@ def run(args):
     cs = makeTable(nic, args.cs)
 
     nicSim = NicSim(nic, fib=fib, pit=pit, cs=cs)
-    nicSim.processTtt(sys.stdin, sys.stdout)
+    nicSim.processTtt(sys.stdin, ndFile, bfuFile)
 
 if __name__ == "__main__":
     args = parseCommandLine()

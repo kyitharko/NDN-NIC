@@ -67,23 +67,35 @@ class NicSim:
         """
         Process a table change line from Traffic and Table Trace.
         """
+        self.nic.bf1.beginUpdate()
+        self.nic.bf2.beginUpdate()
+        if self.nic.bf3 is not None:
+            self.nic.bf3.beginUpdate()
+
         tbl = getattr(self, table.lower())
         func = {"INS": "insert", "DEL": "erase"}[act]
         getattr(tbl, func)(name)
 
-    def processTtt(self, inFile, outFile):
+        (bf1sets, bf1clears) = self.nic.bf1.endUpdate()
+        (bf2sets, bf2clears) = self.nic.bf2.endUpdate()
+        (bf3sets, bf3clears) = self.nic.bf3.endUpdate() if self.nic.bf3 is not None else (0, 0)
+        return bf1sets, bf1clears, bf2sets, bf2clears, bf3sets, bf3clears
+
+    def processTtt(self, tttFile, ndFile, bfuFile):
         """
         Process a Traffic and Table Trace file.
         """
-        for line in inFile:
+        for line in tttFile:
             columns = line.rstrip().split("\t")
             if len(columns) == 5 and columns[1] == "PKT":
                 decision = self.processPacketArrival(*columns)
                 del columns[1]
                 columns.append(decision)
-                print >>outFile, "\t".join(columns)
+                print >>ndFile, "\t".join(columns)
             elif len(columns) == 4:
-                self.processTableChange(*columns)
+                bfuCounts = self.processTableChange(*columns)
+                columns.append(",".join([ str(c) for c in bfuCounts]))
+                print >>bfuFile, "\t".join(columns)
 
 if __name__ == "__main__":
     nic = Nic(128, 128)
