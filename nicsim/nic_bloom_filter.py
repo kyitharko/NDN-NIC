@@ -51,6 +51,8 @@ class NicBloomFilter:
         self.buckets = [0] * m
         self.table = dict()
         self.hasher = NicBloomFilter.__makeHasher(hasher, m)
+        self.isUpdating = False
+        self.bits = set()
 
     def __len__(self):
         return len(self.table)
@@ -62,6 +64,7 @@ class NicBloomFilter:
         :param string key: Uri format of name with "/"
         :param string reasonCode: a reason code; may repeat
         """
+        assert self.isUpdating
         self.table.setdefault(key, []).append(reasonCode)
 
         hashes = self.hasher(key)
@@ -75,6 +78,7 @@ class NicBloomFilter:
         :param string key
         :param string reasonCode: the reason to insert the key
         """
+        assert self.isUpdating
         if key not in self.table:
             raise KeyError
 
@@ -86,6 +90,26 @@ class NicBloomFilter:
         hashes = self.hasher(key)
         for h in hashes:
             self.buckets[h] -= 1
+
+    def beginUpdate(self):
+        """
+        Begin a series of updates.
+        """
+        assert not self.isUpdating
+        self.isUpdating = True
+
+    def endUpdate(self):
+        """
+        Commit a series of updates.
+
+        :return (int, int) count of hardware bits with 0-to-1 and 1-to-0 transitions
+        """
+        assert self.isUpdating
+        self.isUpdating = False
+        oldBits = self.bits
+        newBits = set([ h for h,c in enumerate(self.buckets) if c > 0 ])
+        self.bits = newBits
+        return (len(newBits - oldBits), len(oldBits - newBits))
 
     def query(self, key):
         """
@@ -144,11 +168,15 @@ if __name__ == "__main__":
         keySource = args.keys
 
     nbf = NicBloomFilter(args.m, args.k)
+    nbf.beginUpdate()
     for i in range(args.n):
         key = next(keySource).rstrip()
         nbf.add(key, "X")
         if args.v:
             print "Insert key %s" % key
+    (setBits, clearedBits) = nbf.endUpdate()
+    print "%d bits set" % setBits
+    assert clearedBits == 0
 
     nFalsePositives = 0
     import random
