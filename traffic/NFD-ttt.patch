@@ -230,10 +230,10 @@ index 3256b89..225aa67 100644
      m_nameTree.eraseIfEmpty(nte);
 diff --git a/daemon/ttt.cpp b/daemon/ttt.cpp
 new file mode 100644
-index 0000000..a82e8e2
+index 0000000..2ce7570
 --- /dev/null
 +++ b/daemon/ttt.cpp
-@@ -0,0 +1,120 @@
+@@ -0,0 +1,121 @@
 +#include "ttt.hpp"
 +#include "core/logger.hpp"
 +
@@ -327,7 +327,7 @@ index 0000000..a82e8e2
 +static const Name LOCALHOST("/localhost");
 +
 +void
-+Ttt::recordPacketArrival(char pktType, const Name& name, TttPacketDecision decision)
++Ttt::recordPacketArrival(char pktType, const Name& name, size_t pktSize, TttPacketDecision decision)
 +{
 +  if (LOCALHOST.isPrefixOf(name)) {
 +    return;
@@ -337,6 +337,7 @@ index 0000000..a82e8e2
 +    "PKT" << DELIM <<
 +    pktType << DELIM <<
 +    name << DELIM <<
++    pktSize << DELIM <<
 +    decision << std::endl;
 +}
 +
@@ -356,7 +357,7 @@ index 0000000..a82e8e2
 +} // namespace nfd
 diff --git a/daemon/ttt.hpp b/daemon/ttt.hpp
 new file mode 100644
-index 0000000..1cad0af
+index 0000000..9d8fc79
 --- /dev/null
 +++ b/daemon/ttt.hpp
 @@ -0,0 +1,92 @@
@@ -415,13 +416,13 @@ index 0000000..1cad0af
 +  static void
 +  recordPacketArrival(const Interest& interest, TttPacketDecision decision)
 +  {
-+    recordPacketArrival('I', interest.getName(), decision);
++    recordPacketArrival('I', interest.getName(), interest.wireEncode().size(), decision);
 +  }
 +
 +  static void
 +  recordPacketArrival(const Data& data, TttPacketDecision decision)
 +  {
-+    recordPacketArrival('D', data.getName(), decision);
++    recordPacketArrival('D', data.getName(), data.wireEncode().size(), decision);
 +  }
 +
 +  static void
@@ -440,7 +441,7 @@ index 0000000..1cad0af
 +  startRecord();
 +
 +  static void
-+  recordPacketArrival(char pktType, const Name& name, TttPacketDecision decision);
++  recordPacketArrival(char pktType, const Name& name, size_t pktSize, TttPacketDecision decision);
 +
 +private:
 +  static const char DELIM = '\t';

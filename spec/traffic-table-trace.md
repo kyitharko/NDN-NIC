@@ -16,7 +16,8 @@ A packet arrival record has the following columns:
     * **I**: Interest
 	* **D**: Data
 4.  NDN Name of the packet, represented as a URI without "ndn:" prefix
-5.  decision of software forwarder if delivered; possible values are:
+5.  packet size in octets
+6.  decision of software forwarder if delivered; possible values are:
 	* **DROP**: dropped
     * **FIB**: accepted, Interest matching FIB
 	* **PIT**: accepted, Data matching PIT

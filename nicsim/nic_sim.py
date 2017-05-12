@@ -52,7 +52,7 @@ class NicSim:
         self.pit = makeTable("PIT", pit)
         self.cs = makeTable("CS", cs)
 
-    def processPacketArrival(self, timestamp, _pkt, netType, name, swDecision):
+    def processPacketArrival(self, timestamp, _pkt, netType, name, pktSize, swDecision):
         """
         Process a packet arrival line from Traffic and Table Trace.
         """
@@ -87,19 +87,20 @@ class NicSim:
         """
         for line in tttFile:
             columns = line.rstrip().split("\t")
-            if len(columns) == 5 and columns[1] == "PKT":
+            if len(columns) == 6 and columns[1] == "PKT":
                 decision = self.processPacketArrival(*columns)
+                del columns[4]
                 del columns[1]
                 columns.append(decision)
                 print >>ndFile, "\t".join(columns)
             elif len(columns) == 4:
                 bfuCounts = self.processTableChange(*columns)
-                columns += [ str(c) for c in bfuCounts]
+                columns += [ str(c) for c in bfuCounts ]
                 print >>bfuFile, "\t".join(columns)
 
 if __name__ == "__main__":
-    nic = Nic(128, 128)
+    nic = Nic(128, 128, 128)
     nicSim = NicSim(nic)
 
     import sys
-    nicSim.processTtt(sys.stdin, sys.stdout)
+    nicSim.processTtt(sys.stdin, sys.stdout, sys.stdout)
