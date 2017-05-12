@@ -9,9 +9,9 @@ This functionality can be enabled and configured via environment variables, desc
 
 ## Installation
 
-1. Install ndn-cxx 0.4.0-beta2.
-2. Install ndn-tools latest, currently commit:3e79c9cd.
-3. Fetch NFD 0.4.0-beta2, patch with `NFD-ttt.patch`, and install patched version.
+1. Install ndn-cxx 0.5.1.
+2. Install ndn-tools 0.4.0.
+3. Fetch NFD 0.5.1, patch with `NFD-ttt.patch`, and install patched version.
 4. Install [mnndn](http://github.com/yoursunny/mnndn).
 
 ## Usage
