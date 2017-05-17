@@ -16,34 +16,23 @@ if [[ $NFS_DURATION -le 0 ]]; then
   exit 2
 fi
 
-NCLIENTS=$(ls $NFS_DATASET/$NFS_TIMEPERIOD.*.replay | wc -l)
-NSERVERS=$(ls $NFS_DATASET/*.paths | wc -l)
-NHOSTS=$((NCLIENTS+NSERVERS))
-
-if [[ $NCLIENTS -eq 0 ]]; then
-  echo 'No client trace is found.'
-  exit 1
-fi
-if [[ $NSERVERS -eq 0 ]]; then
-  echo 'No server paths file is found.'
-  exit 1
-fi
-
 (
   echo -n nfs
   I=0
 
-  for PATHSFILE in $(ls $NFS_DATASET/*.paths); do
+  for SERVER in $(cut -d, -f1 $NFS_DATASET/traceinfo.csv); do
     I=$((I+1))
     HOST=h$I
-    echo -n ,s:$HOST:$PATHSFILE
+    echo -n ,s:$HOST:$NFS_DATASET/$SERVER/all.paths
   done
 
-  for OPSTRACE in $(ls $NFS_DATASET/$NFS_TIMEPERIOD.*.replay); do
+  for OPSTRACE in $(ls $NFS_DATASET/replay/$NFS_TIMEPERIOD.*.ops); do
     I=$((I+1))
     HOST=h$I
     echo -n ,c:$HOST:$HOST:$OPSTRACE
   done
-) > /tmp/nfs-traffic.txt
+) >/tmp/nfs-traffic.txt
+
+NHOSTS=$(tr ',' '\n' </tmp/nfs-traffic.txt | wc -l)
 
 sudo PYTHONPATH=$PYTHONPATH ./exp.py --k $NHOSTS --duration $NFS_DURATION --traffic $(cat /tmp/nfs-traffic.txt) "$@"
