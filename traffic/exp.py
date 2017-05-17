@@ -44,12 +44,16 @@ def run(args):
                        env=dict(
                          TTT_FACE=NDNNIC_FACEURI,
                          TTT_EPOCH=str(time.time()),
-                         TTT_LOG='/var/log/ndn/ttt.log',
+                         TTT_LOG='/var/log/ndn/ttt.tsv.pipe',
                        )))
     net.start()
     atexit.register(net.stop)
 
     traffics = [ makeTraffic(*trafficConfig.split(',')) for trafficConfig in args.traffic ]
+
+    for host in net.hosts:
+        host.pexec('mkfifo', '/var/log/ndn/ttt.tsv.pipe')
+        host.popen('sh', '-c', 'xz </var/log/ndn/ttt.tsv.pipe >/var/log/ndn/ttt.tsv.xz')
 
     print 'Start forwarding.'
     fws = [ host.getFw() for host in net.hosts ]
@@ -58,7 +62,7 @@ def run(args):
     time.sleep(5)
 
     for host in net.hosts:
-        host.pexec('nfdc', 'register', '/', NDNNIC_FACEURI)
+        host.getFw().nfdc('register', '/', NDNNIC_FACEURI)
 
     print 'Start traffic.'
     startTrafficThreads = [ threading.Thread(target=functools.partial(traffic.start, net)) for traffic in traffics ]
