@@ -12,9 +12,9 @@ Each record records hardware BF updates for a table change.
 2.  copy column2 from table change record
 3.  copy column3 from table change record
 4.  copy column4 from table change record
-5.  BF1: bits changed from 0 to 1
-6.  BF1: bits changed from 1 to 0
-7.  BF2: bits changed from 0 to 1
-8.  BF2: bits changed from 1 to 0
-9.  BF3: bits changed from 0 to 1
-10. BF3: bits changed from 1 to 0
+5.  BF-FIB bits changed from 0 to 1
+6.  BF-FIB bits changed from 1 to 0
+7.  BF-CS bits changed from 0 to 1
+8.  BF-CS bits changed from 1 to 0
+9.  BF-PIT bits changed from 0 to 1
+10. BF-PIT bits changed from 1 to 0

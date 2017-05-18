@@ -67,19 +67,13 @@ class NicSim:
         """
         Process a table change line from Traffic and Table Trace.
         """
-        self.nic.bf1.beginUpdate()
-        self.nic.bf2.beginUpdate()
-        if self.nic.bf3 is not None:
-            self.nic.bf3.beginUpdate()
+        self.nic.beginBfUpdates()
 
         tbl = getattr(self, table.lower())
         func = {"INS": "insert", "DEL": "erase"}[act]
         getattr(tbl, func)(name)
 
-        (bf1sets, bf1clears) = self.nic.bf1.endUpdate()
-        (bf2sets, bf2clears) = self.nic.bf2.endUpdate()
-        (bf3sets, bf3clears) = self.nic.bf3.endUpdate() if self.nic.bf3 is not None else (0, 0)
-        return bf1sets, bf1clears, bf2sets, bf2clears, bf3sets, bf3clears
+        return self.nic.endBfUpdates()
 
     def processTtt(self, tttFile, ndFile, bfuFile):
         """

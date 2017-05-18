@@ -27,11 +27,11 @@ def parseCommandLine():
     parser.add_argument("--comment", action="append",
                         help="ignored; may be used to identify running process")
     parser.add_argument("--bf1", default="1024",
-                        help="BF1 configuration")
+                        help="BF-FIB configuration")
     parser.add_argument("--bf2", default="1024",
-                        help="BF2 configuration")
+                        help="BF-CS configuration")
     parser.add_argument("--bf3", default="1024",
-                        help="BF3 configuration; 0 disables BF3, -1 disables BF3 and causes BF2 to ignore netType")
+                        help="BF-PIT configuration")
     parser.add_argument("--nd", type=argparse.FileType('w'),
                         help="NIC decision log; stdout if unspecified")
     parser.add_argument("--bfu", type=argparse.FileType('w'),
@@ -86,19 +86,14 @@ def makeTable(nic, arg):
     return eval(arg, table.__dict__, dict(nic=nic))
 
 def run(args):
-    bf1 = makeBf(args.bf1)
-    bf2 = makeBf(args.bf2)
-    if args.bf3 == "0" or args.bf3 == "-1":
-        bf3 = None
-        ignoreNetType2 = args.bf3 == "-1"
-    else:
-        bf3 = makeBf(args.bf3)
-        ignoreNetType2 = False
+    bfFib = makeBf(args.bf1)
+    bfCs = makeBf(args.bf2)
+    bfPit = makeBf(args.bf3)
 
     ndFile = sys.stdout if args.nd is None else args.nd
     bfuFile = sys.stdout if args.bfu is None else args.bfu
 
-    nic = Nic(bf1, bf2, bf3, ignoreNetType2=ignoreNetType2)
+    nic = Nic(bfFib, bfCs, bfPit)
 
     fib = makeTable(nic, args.fib)
     pit = makeTable(nic, args.pit)

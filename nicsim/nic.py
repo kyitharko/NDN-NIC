@@ -25,38 +25,31 @@ class Nic:
     Simulates NDN-NIC hardware.
     """
     @staticmethod
-    def __makeBloomFilter(bf, canDisable=False):
+    def __makeBloomFilter(bf):
         if isinstance(bf, NicBloomFilter):
             return bf
         elif isinstance(bf, (int, long)):
             if bf == 0:
-                if canDisable:
-                    return None
-                else:
-                    raise ValueError("Bloom filter size cannot be zero")
+                raise ValueError("Bloom filter size cannot be zero")
             return NicBloomFilter(bf)
         else:
-            if bf is None and canDisable:
-                return None
             raise TypeError("unexpected type for Bloom filter")
 
-    def __init__(self, bf1, bf2, bf3, ignoreNetType2=False):
+    def __init__(self, bfFib, bfCs, bfPit):
         """
         Constructor;
 
-        :param bf1: NicBloomFilter instance or BF size
-        :param bf2: NicBloomFilter instance or BF size
-        :param bf3: NicBloomFilter instance or BF size; None or 0 to disable BF3
-        :param ignoreNetType2: if true, packets are matched against BF2 even if it's not Interest
+        :param bfFib: NicBloomFilter instance or BF size
+        :param bfCs: NicBloomFilter instance or BF size
+        :param bfPit: NicBloomFilter instance or BF size
         """
-        self.bf1 = Nic.__makeBloomFilter(bf1)
-        self.bf2 = Nic.__makeBloomFilter(bf2)
-        self.bf3 = Nic.__makeBloomFilter(bf3, canDisable=True)
-        self.ignoreNetType2 = ignoreNetType2
+        self.bfFib = Nic.__makeBloomFilter(bfFib)
+        self.bfCs = Nic.__makeBloomFilter(bfCs)
+        self.bfPit = Nic.__makeBloomFilter(bfPit)
 
         self._prefixMatch = {
-          "I": (self.bf1, "FP1"),
-          "D": (self.bf1, "FP1") if self.bf3 is None else (self.bf3, "FP3")
+          "I": (self.bfFib, "FP1"),
+          "D": (self.bfPit, "FP3")
         }
 
     def processPacket(self, netType, name):
@@ -73,7 +66,7 @@ class Nic:
         # get prefixes of the input name
         prefixes = nameutil.getPrefixes(name)
 
-        # BF1 or BF3 prefix match
+        # BF-FIB or BF-PIT prefix match
         prefixMatchBf, prefixMatchFpCode = self._prefixMatch[netType]
         for prefix in prefixes:
             result1 = prefixMatchBf.query(prefix)
@@ -84,9 +77,9 @@ class Nic:
             else:
                 reasonCodes += result1
 
-        # BF2 exact match for Interest
-        if netType == "I" or self.ignoreNetType2:
-            result2 = self.bf2.query(name)
+        # BF-CS exact match for Interest
+        if netType == "I":
+            result2 = self.bfCs.query(name)
             if result2 == False:
                 pass
             elif result2 == "FP":
@@ -95,3 +88,14 @@ class Nic:
                 reasonCodes += result2
 
         return len(reasonCodes) > 0, list(set(reasonCodes))
+
+    def beginBfUpdates(self):
+        self.bfFib.beginUpdate()
+        self.bfCs.beginUpdate()
+        self.bfPit.beginUpdate()
+
+    def endBfUpdates(self):
+        (bfFibSets, bfFibClears) = self.bfFib.endUpdate()
+        (bfCsSets, bfCsClears) = self.bfCs.endUpdate()
+        (bfPitSets, bfPitClears) = self.bfPit.endUpdate()
+        return bfFibSets, bfFibClears, bfCsSets, bfCsClears, bfPitSets, bfPitClears

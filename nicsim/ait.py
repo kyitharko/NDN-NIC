@@ -28,11 +28,11 @@ class AitNode(NameTreeNode):
         self.inCs = False
         """whether this name has a CS entry"""
         self.hasCs1 = False
-        """whether this name has a CS1 key"""
+        """whether this name has a CS1 key (name in BF-FIB and needed by CS)"""
         self.hasCs2 = False
-        """whether this name has a CS2 key"""
-        self.hasFib1 = False
-        """whether this name has a FIB1 key"""
+        """whether this name has a CS2 key (name in BF-CS)"""
+        self.hasFibEntry = False
+        """whether this name has a FIB entry"""
 
         self.deepestCs2Dist = None
         """distance to deepest CS2 key"""
@@ -57,7 +57,7 @@ class AitNode(NameTreeNode):
               "inCs " if self.inCs else "",
               "CS1 " if self.hasCs1 else "",
               "CS2 " if self.hasCs2 else "",
-              "FIB1 " if self.hasFib1 else "",
+              "FIB " if self.hasFibEntry else "",
             ] +
             ([
               "deep2=none " if self.deepestCs2Dist is None
@@ -84,7 +84,7 @@ class AitNode(NameTreeNode):
         self.unlabelCs1()
 
         self.hasCs2 = True
-        self.tree.bf2.add(self.name, "CS2")
+        self.tree.bfCs.add(self.name, "CS2")
         self.tree.nCs2 += 1
         self._trace("labelCs2 %s" % self.name)
 
@@ -102,7 +102,7 @@ class AitNode(NameTreeNode):
             child.unlabelCs2()
 
         self.hasCs2 = False
-        self.tree.bf2.remove(self.name, "CS2")
+        self.tree.bfCs.remove(self.name, "CS2")
         self.tree.nCs2 -= 1
         self._trace("unlabelCs2 %s" % self.name)
 
@@ -120,7 +120,7 @@ class AitNode(NameTreeNode):
         self.unlabelCs2()
 
         self.hasCs1 = True
-        self.tree.bf1.add(self.name, "CS1")
+        self.tree.bfFib.add(self.name, "CS1")
         self.tree.nCs1 += 1
         self._trace("labelCs1 %s" % self.name)
 
@@ -135,7 +135,7 @@ class AitNode(NameTreeNode):
             return
 
         self.hasCs1 = False
-        self.tree.bf1.remove(self.name, "CS1")
+        self.tree.bfFib.remove(self.name, "CS1")
         self.tree.nCs1 -= 1
         self._trace("unlabelCs1 %s" % self.name)
 
@@ -187,7 +187,7 @@ class AitNode(NameTreeNode):
             self.parent._updateCs2Fields()
 
     def _isPmfpReductionEligible(self):
-        return self.hasCs1 and not self.hasFib1 and len(self.children) <= self.tree.degreeThreshold(self)
+        return self.hasCs1 and not self.hasFibEntry and len(self.children) <= self.tree.degreeThreshold(self)
 
     def findReduction2(self):
         """
@@ -227,7 +227,7 @@ class DegreeThreshold:
         """
         Construct from a vector of integers.
         The integer at i-th position is the degree threshold of a node with i-component name.
-        The last integer is the degree threshold of a node with a longer name.
+        The last integer is the degree threshold of a node with any longer name.
         """
         self.vector = [ int(x) for x in opts ]
         self.max = max(self.vector)
@@ -245,7 +245,7 @@ class Ait(NameTree):
     """
     Acceptable Interest Tree.
     """
-    def __init__(self, bf1, bf2, degreeThreshold=DEFAULT_DEGREE_THRESHOLD, trace=None):
+    def __init__(self, bfFib, bfCs, degreeThreshold=DEFAULT_DEGREE_THRESHOLD, trace=None):
         """
         Constructor.
 
@@ -253,8 +253,8 @@ class Ait(NameTree):
         :param file trace: a file-like object to write trace logs, or None to disable trace logs
         """
         NameTree.__init__(self, node=AitNode)
-        self.bf1 = bf1
-        self.bf2 = bf2
+        self.bfFib = bfFib
+        self.bfCs = bfCs
         self.degreeThreshold = degreeThreshold
         self.trace = trace
 
@@ -297,23 +297,23 @@ class Ait(NameTree):
 
 class AitCsOptions:
     useFreeFib1 = False
-    """Use "free" CS1 key where FIB1 key exists."""
+    """Use "free" CS1 key where FIB entry exists."""
     degreeThreshold = DEFAULT_DEGREE_THRESHOLD
     """Node degree threshold. A node exceeding this threshold is labelled CS1."""
     fp2Threshold = (None, 0.1, 2)
-    """BF2 false positive thresholds.
+    """BF-CS false positive thresholds.
        Either specify (low, high) limits as a tuple,
        or specify (None, high, multipler) to compute low capacity limit as high - multiplier*degreeThreshold."""
     bf2Capacity = None
-    """BF2 capacity, specified as number of keys. This precedes fp2Threshold.
+    """BF-CS capacity, specified as number of keys. This precedes fp2Threshold.
        Either specify (low, high) limits as a tuple,
        or specify (None, high, multipler) to compute low capacity limit as high - multiplier*degreeThreshold."""
     fp1Threshold = (None, 0.1, 2)
-    """BF1 false positive threshold.
+    """BF-FIB false positive threshold.
        Either specify (low, high) limits as a tuple,
        or specify (None, high, multipler) to compute low capacity limit as high - multiplier*degreeThreshold."""
     bf1Capacity = None
-    """BF1 capacity, specified as number of keys. This precedes fp1Threshold.
+    """BF-FIB capacity, specified as number of keys. This precedes fp1Threshold.
        Either specify (low, high) limits as a tuple,
        or specify (None, high, multipler) to compute low capacity limit as high - multiplier*degreeThreshold."""
     lowLimitMultiplier = 2.0
@@ -331,16 +331,16 @@ class AitCs:
     """
     def __init__(self, nic, options=AitCsOptions(), trace=None):
         self.options = options
-        self.bf1 = nic.bf1
-        self.bf2 = nic.bf2
-        self.ait = Ait(self.bf1, self.bf2, degreeThreshold=options.degreeThreshold, trace=trace)
+        self.bfFib = nic.bfFib
+        self.bfCs = nic.bfCs
+        self.ait = Ait(self.bfFib, self.bfCs, degreeThreshold=options.degreeThreshold, trace=trace)
 
-        self.bf2Low, self.bf2High = self._computeLimits(self.bf2, "BF2", self.options.bf2Capacity, self.options.fp2Threshold)
-        self.bf1Low, self.bf1High = self._computeLimits(self.bf1, "BF1", self.options.bf1Capacity, self.options.fp1Threshold)
-        self._trace("AitCs.bf2Low=%f" % self.bf2Low)
-        self._trace("AitCs.bf2High=%f" % self.bf2High)
-        self._trace("AitCs.bf1Low=%f" % self.bf1Low)
-        self._trace("AitCs.bf1High=%f" % self.bf1High)
+        self.bfCsLow, self.bfCsHigh = self._computeLimits(self.bfCs, "BF-CS", self.options.bf2Capacity, self.options.fp2Threshold)
+        self.bfFibLow, self.bfFibHigh = self._computeLimits(self.bfFib, "BF-FIB", self.options.bf1Capacity, self.options.fp1Threshold)
+        self._trace("AitCs.bfCsLow=%f" % self.bfCsLow)
+        self._trace("AitCs.bfCsHigh=%f" % self.bfCsHigh)
+        self._trace("AitCs.bfFibLow=%f" % self.bfFibLow)
+        self._trace("AitCs.bfFibHigh=%f" % self.bfFibHigh)
 
     def _computeLimits(self, bf, bfLabel, capacityOption, thresholdOption):
         if capacityOption is None:
@@ -373,8 +373,8 @@ class AitCs:
             node = self.ait[prefix]
             if not isNewNode:
                 continue
-            node.hasFib1 = "FIB1" in self.bf1.table.get(prefix, [])
-            if node.hasFib1 and fib1NodeIndex < 0:
+            node.hasFibEntry = "FIB" in self.bfFib.table.get(prefix, [])
+            if node.hasFibEntry and fib1NodeIndex < 0:
                 fib1NodeIndex = len(newNodes)
             newNodes.append(node)
 
@@ -420,17 +420,17 @@ class AitCs:
             parentNode.labelCs1()
 
         # FP2 reduction
-        while len(self.bf2) > self.bf2High:
+        while len(self.bfCs) > self.bfCsHigh:
             target = self.ait.root.findReduction2()
-            self._trace("reduction2 bf2=%d %s" % (len(self.bf2), "none" if target is None else target.name))
+            self._trace("reduction2 bf2=%d %s" % (len(self.bfCs), "none" if target is None else target.name))
             if target is None:
                 break
             target.labelCs1()
 
         # FP1 reduction
-        while len(self.bf1) > self.bf1High:
+        while len(self.bfFib) > self.bfFibHigh:
             target = self.ait.root.findReduction1()
-            self._trace("reduction1 bf1=%d %s" % (len(self.bf1), "none" if target is None else target.name))
+            self._trace("reduction1 bf1=%d %s" % (len(self.bfFib), "none" if target is None else target.name))
             if target is None:
                 break
             target.labelCs1()
@@ -457,9 +457,9 @@ class AitCs:
             del self.ait[node.name]
 
         # PMFP reduction
-        while len(self.ait) > 0 and len(self.bf2) < self.bf2Low and len(self.bf1) < self.bf1Low:
+        while len(self.ait) > 0 and len(self.bfCs) < self.bfCsLow and len(self.bfFib) < self.bfFibLow:
             target = self.ait.root.findReductionPmfp()
-            self._trace("reductionPmfp bf2=%d bf1=%d %s" % (len(self.bf2), len(self.bf1), "none" if target is None else target.name))
+            self._trace("reductionPmfp bf2=%d bf1=%d %s" % (len(self.bfCs), len(self.bfFib), "none" if target is None else target.name))
             if target is None:
                 break
             target.labelCs2()
@@ -473,17 +473,21 @@ AitCs.DegreeThreshold = DegreeThreshold
 
 if __name__ == "__main__":
     from nic import Nic
-    nic = Nic(128, 128, 0)
+    nic = Nic(128, 128, 128)
     options = AitCsOptions(useFreeFib1=False, bf2Capacity=(5,8), bf1Capacity=(5,8))
     cs = AitCs(nic, options, trace=sys.stderr)
     print cs.ait
     names = [ "/".join(["", c1, c2, c3]) for c1 in "ABCD" for c2 in "abcd" for c3 in "1234" ]
     for name in names:
         print "INS %s" % name
+        nic.beginBfUpdates()
         cs.insert(name)
+        nic.endBfUpdates()
         print cs.ait
     names.reverse()
     for name in names:
         print "DEL %s" % name
+        nic.beginBfUpdates()
         cs.erase(name)
+        nic.endBfUpdates()
         print cs.ait

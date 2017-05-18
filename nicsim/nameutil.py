@@ -19,7 +19,7 @@
 
 def getPrefixes(name):
     """
-    Get all prefixes of a name, including itself.
+    Get all prefixes of a name including self in increasing-length order.
     """
     prefixes = ["/"]
     if name == "/":

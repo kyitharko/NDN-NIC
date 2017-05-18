@@ -23,69 +23,67 @@ from ait import AitCs
 
 class NaiveFib:
     """
-    A FIB that adds every entry name to BF1.
+    A FIB that adds every entry name to BF-FIB.
     """
     def __init__(self, nic):
-        self.bf1 = nic.bf1
+        self.bfFib = nic.bfFib
 
     def insert(self, name):
-        self.bf1.add(name, "FIB1")
+        self.bfFib.add(name, "FIB")
 
     def erase(self, name):
-        self.bf1.remove(name, "FIB1")
+        self.bfFib.remove(name, "FIB")
 
 class NaivePit:
     """
-    A PIT that adds every entry name to BF3.
+    A PIT that adds every entry name to BF-PIT.
     """
     def __init__(self, nic):
-        self.bf, self.reasonCode = (nic.bf1, "PIT1") if nic.bf3 is None else (nic.bf3, "PIT3")
+        self.bfPit = nic.bfPit
 
     def insert(self, name):
-        self.bf.add(name, self.reasonCode)
+        self.bfPit.add(name, "PIT")
 
     def erase(self, name):
-        self.bf.remove(name, self.reasonCode)
+        self.bfPit.remove(name, "PIT")
 
 class NaiveCs:
     """
-    A CS that adds prefixes of every entry name to BF2.
+    A CS that adds prefixes of every entry name to BF-CS.
     """
     def __init__(self, nic):
-        self.bf2 = nic.bf2
+        self.bfCs = nic.bfCs
 
     def insert(self, name):
-        prefixes = nameutil.getPrefixes(name)
-        for prefix in prefixes:
-            self.bf2.add(prefix, "CS2")
+        for prefix in nameutil.getPrefixes(name):
+            self.bfCs.add(prefix, "CS2")
 
     def erase(self, name):
-        prefixes = nameutil.getPrefixes(name)
-        for prefix in prefixes:
-            self.bf2.remove(prefix, "CS2")
+        for prefix in nameutil.getPrefixes(name):
+            self.bfCs.remove(prefix, "CS2")
 
 class BasicCs:
     """
-    A CS that adds prefixes of every entry name to BF2 except those covered by a FIB1 key.
+    A CS that adds prefixes of every entry name to BF-CS except those covered by a FIB entry.
+
+    .. warning:: This implementation does not accommodate FIB entry removal.
     """
     def __init__(self, nic):
-        self.bf1 = nic.bf1
-        self.bf2 = nic.bf2
+        self.bfFib = nic.bfFib
+        self.bfCs = nic.bfCs
 
     def insert(self, name):
-        prefixes = nameutil.getPrefixes(name)
-        for prefix in prefixes:
-            if "FIB1" in self.bf1.table.get(prefix, []):
-                self.bf1.add(prefix, "CS1")
+        for prefix in nameutil.getPrefixes(name):
+            if "FIB" in self.bfFib.table.get(prefix, []):
+                self.bfFib.add(prefix, "CS1")
                 break
             else:
-                self.bf2.add(prefix, "CS2")
+                self.bfCs.add(prefix, "CS2")
 
     def erase(self, name):
-        prefixes = nameutil.getPrefixes(name)
-        for prefix in prefixes:
-            if "CS1" in self.bf1.table.get(prefix, []):
-                self.bf1.remove(prefix, "CS1")
+        for prefix in nameutil.getPrefixes(name):
+            if "CS1" in self.bfFib.table.get(prefix, []):
+                self.bfFib.remove(prefix, "CS1")
                 break
             else:
-                self.bf2.remove(prefix, "CS2")
+                self.bfCs.remove(prefix, "CS2")
