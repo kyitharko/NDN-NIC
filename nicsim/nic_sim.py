@@ -89,7 +89,6 @@ class NicSim:
             columns = line.rstrip().split("\t")
             if len(columns) == 6 and columns[1] == "PKT":
                 decision = self.processPacketArrival(*columns)
-                del columns[4]
                 del columns[1]
                 columns.append(decision)
                 print >>ndFile, "\t".join(columns)
