@@ -23,6 +23,7 @@ from nic_bloom_filter import NicBloomFilter
 class NicBloomFilterTestCase(ut.TestCase):
     def setUp(self):
         self.nbf = NicBloomFilter(128)
+        self.nbf.beginUpdate()
 
     def test_simple(self):
         self.assertEqual(len(self.nbf), 0)
@@ -55,6 +56,23 @@ class NicBloomFilterTestCase(ut.TestCase):
         for i in range(1024):
             self.nbf.add(str(i), "PIT1")
         self.assertEqual(self.nbf.query("x"), "FP")
+
+    def test_counters(self):
+        nSets, nClears = self.nbf.endUpdate()
+        self.assertEquals(nSets, 0)
+        self.assertEquals(nClears, 0)
+
+        self.nbf.beginUpdate()
+        self.nbf.add("/A", "FIB")
+        nSets, nClears = self.nbf.endUpdate()
+        self.assertGreater(nSets, 0)
+        self.assertEquals(nClears, 0)
+
+        self.nbf.beginUpdate()
+        self.nbf.remove("/A", "FIB")
+        nSets2, nClears2 = self.nbf.endUpdate()
+        self.assertEquals(nSets2, 0)
+        self.assertEquals(nClears2, nSets)
 
 if __name__ == '__main__':
     ut.main(verbosity=2)
