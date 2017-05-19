@@ -19,9 +19,9 @@
 
 import nameutil
 
-from ait import AitCs
+from ait import ActiveCs
 
-class NaiveFib:
+class DirectFib:
     """
     A FIB that adds every entry name to BF-FIB.
     """
@@ -34,7 +34,7 @@ class NaiveFib:
     def erase(self, name):
         self.bfFib.remove(name, "FIB")
 
-class NaivePit:
+class DirectPit:
     """
     A PIT that adds every entry name to BF-PIT.
     """
@@ -47,7 +47,7 @@ class NaivePit:
     def erase(self, name):
         self.bfPit.remove(name, "PIT")
 
-class NaiveCs:
+class DirectCs:
     """
     A CS that adds prefixes of every entry name to BF-CS.
     """

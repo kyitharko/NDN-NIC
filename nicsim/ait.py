@@ -295,7 +295,7 @@ class Ait(NameTree):
         if self.root is not None:
             checkSubtree(self.root, False)
 
-class AitCsOptions:
+class ActiveCsOptions:
     useFreeFib1 = False
     """Use "free" CS1 key where FIB entry exists."""
     degreeThreshold = DEFAULT_DEGREE_THRESHOLD
@@ -325,11 +325,11 @@ class AitCsOptions:
                 raise KeyError("unknown attribute %s" % k)
             setattr(self, k, v)
 
-class AitCs:
+class ActiveCs:
     """
     ContentStore based on AIT.
     """
-    def __init__(self, nic, options=AitCsOptions(), trace=None):
+    def __init__(self, nic, options=ActiveCsOptions(), trace=None):
         self.options = options
         self.bfFib = nic.bfFib
         self.bfCs = nic.bfCs
@@ -337,10 +337,10 @@ class AitCs:
 
         self.bfCsLow, self.bfCsHigh = self._computeLimits(self.bfCs, "BF-CS", self.options.bf2Capacity, self.options.fp2Threshold)
         self.bfFibLow, self.bfFibHigh = self._computeLimits(self.bfFib, "BF-FIB", self.options.bf1Capacity, self.options.fp1Threshold)
-        self._trace("AitCs.bfCsLow=%f" % self.bfCsLow)
-        self._trace("AitCs.bfCsHigh=%f" % self.bfCsHigh)
-        self._trace("AitCs.bfFibLow=%f" % self.bfFibLow)
-        self._trace("AitCs.bfFibHigh=%f" % self.bfFibHigh)
+        self._trace("ActiveCs.bfCsLow=%f" % self.bfCsLow)
+        self._trace("ActiveCs.bfCsHigh=%f" % self.bfCsHigh)
+        self._trace("ActiveCs.bfFibLow=%f" % self.bfFibLow)
+        self._trace("ActiveCs.bfFibHigh=%f" % self.bfFibHigh)
 
     def _computeLimits(self, bf, bfLabel, capacityOption, thresholdOption):
         if capacityOption is None:
@@ -468,14 +468,14 @@ class AitCs:
 
         self.ait.checkInvariants()
 
-AitCs.Options = AitCsOptions
-AitCs.DegreeThreshold = DegreeThreshold
+ActiveCs.Options = AitCsOptions
+ActiveCs.DegreeThreshold = DegreeThreshold
 
 if __name__ == "__main__":
     from nic import Nic
     nic = Nic(128, 128, 128)
-    options = AitCsOptions(useFreeFib1=False, bf2Capacity=(5,8), bf1Capacity=(5,8))
-    cs = AitCs(nic, options, trace=sys.stderr)
+    options = ActiveCsOptions(useFreeFib1=False, bf2Capacity=(5,8), bf1Capacity=(5,8))
+    cs = ActiveCs(nic, options, trace=sys.stderr)
     print cs.ait
     names = [ "/".join(["", c1, c2, c3]) for c1 in "ABCD" for c2 in "abcd" for c3 in "1234" ]
     for name in names:

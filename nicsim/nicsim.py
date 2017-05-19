@@ -36,11 +36,11 @@ def parseCommandLine():
                         help="NIC decision log; stdout if unspecified")
     parser.add_argument("--bfu", type=argparse.FileType('w'),
                         help="BF update log; stdout if unspecified")
-    parser.add_argument("--fib", default="NaiveFib",
+    parser.add_argument("--fib", default="DirectFib",
                         help="FIB type or expression")
-    parser.add_argument("--pit", default="NaivePit",
+    parser.add_argument("--pit", default="DirectPit",
                         help="PIT type or expression")
-    parser.add_argument("--cs", default="NaiveCs",
+    parser.add_argument("--cs", default="DirectCs",
                         help="CS type or expression")
     args = parser.parse_args()
     return args
