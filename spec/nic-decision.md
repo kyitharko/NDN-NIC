@@ -8,11 +8,12 @@ Each record indicates the decision of NIC on an incoming packet.
 
 ## packet decision record
 
-1.  copy column1 from packet arrival record
-2.  copy column3 from packet arrival record
-3.  copy column4 from packet arrival record
-4.  copy column5 from packet arrival record
-5.  decision of NIC; possible values are:
+1.  timestamp, copied from packet arrival record
+2.  network layer type, copied from packet arrival record
+3.  NDN Name, copied from packet arrival record
+4.  packet size, copied from packet arrival record
+5.  decision of software forwarder, copied from packet arrival record
+6.  decision of NIC; possible values are:
     * **DROP**: dropped
     * **FP-FIB**: accepted, BF-FIB Bloom filter false positive
     * **FP-CS**: accepted, BF-CS Bloom filter false positive

@@ -8,10 +8,10 @@ Each record records hardware BF updates for a table change.
 
 ## BF update record
 
-1.  copy column1 from table change record
-2.  copy column2 from table change record
-3.  copy column3 from table change record
-4.  copy column4 from table change record
+1.  timestamp, copied from table change record
+2.  change action, copied from table change record
+3.  table, copied from table change record
+4.  NDN Name, copied from table change record
 5.  BF-FIB bits changed from 0 to 1
 6.  BF-FIB bits changed from 1 to 0
 7.  BF-CS bits changed from 0 to 1
