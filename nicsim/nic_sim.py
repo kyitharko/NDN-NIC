@@ -18,14 +18,14 @@
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
 from nic import Nic
-from table import DirectFib, NaivePit, NaiveCs
+from table import DirectFib, DirectPit, DirectCs
 
 class NicSim:
     """
     The NDN-NIC simulator.
     This class simulates a hardware NDN-NIC and its corresponding software portion.
     """
-    def __init__(self, nic, fib=DirectFib, pit=NaivePit, cs=NaiveCs):
+    def __init__(self, nic, fib=DirectFib, pit=DirectPit, cs=DirectCs):
         """
         Constructor.
 

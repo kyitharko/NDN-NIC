@@ -16,9 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # A copy of the GNU Lesser General Public License is in the file COPYING.
 
+import os
 import sys
 import nameutil
 from name_tree import NameTree, NameTreeNode
+from nic import Nic
 from nic_sim import NicSim
 
 class NopTable:
@@ -76,11 +78,9 @@ class PacketProcessingOverheadEstimator(NicSim):
     Estimate packet processing overhead based on packet arrival records.
     """
     def __init__(self):
-        self.fib = NopTable()
-        self.pit = NopTable()
-        self.cs = TreeCs()
+        NicSim.__init__(self, Nic(1, 1, 1), NopTable(), NopTable(), TreeCs())
 
-    def processPacketArrival(self, timestamp, _pkt, netType, name, swDecision):
+    def processPacketArrival(self, timestamp, _pkt, netType, name, pktSize, swDecision):
         func = {"I": "processInterest", "D": "processData"}[netType]
         return str(getattr(self, func)(name))
 
@@ -94,7 +94,7 @@ class PacketProcessingOverheadEstimator(NicSim):
 
     def processData(self, name):
         """
-        Estimate NameTree node access count for Daya processing.
+        Estimate NameTree node access count for Data processing.
         1. From root, find matching PIT entries.
         2. Insert CS entry.
         """
@@ -102,4 +102,4 @@ class PacketProcessingOverheadEstimator(NicSim):
 
 if __name__ == "__main__":
     estimator = PacketProcessingOverheadEstimator()
-    estimator.processTtt(sys.stdin, sys.stdout)
+    estimator.processTtt(sys.stdin, sys.stdout, open(os.devnull, 'w'))
