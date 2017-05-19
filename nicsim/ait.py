@@ -296,8 +296,6 @@ class Ait(NameTree):
             checkSubtree(self.root, False)
 
 class ActiveCsOptions:
-    useFreeFib1 = False
-    """Use "free" CS1 key where FIB entry exists."""
     degreeThreshold = DEFAULT_DEGREE_THRESHOLD
     """Node degree threshold. A node exceeding this threshold is labelled CS1."""
     fp2Threshold = (None, 0.1, 2)
@@ -367,15 +365,15 @@ class ActiveCs:
     def insert(self, name):
         # update AIT
         newNodes = []
-        fib1NodeIndex = -1
+        fibEntryNodeIndex = -1
         for prefix in nameutil.getPrefixes(name):
             isNewNode = prefix not in self.ait
             node = self.ait[prefix]
             if not isNewNode:
                 continue
             node.hasFibEntry = "FIB" in self.bfFib.table.get(prefix, [])
-            if node.hasFibEntry and fib1NodeIndex < 0:
-                fib1NodeIndex = len(newNodes)
+            if node.hasFibEntry and fibEntryNodeIndex < 0:
+                fibEntryNodeIndex = len(newNodes)
             newNodes.append(node)
 
         node.inCs = True # node refers to the ait[name]
@@ -395,16 +393,16 @@ class ActiveCs:
             self._trace("parentDegree %s degree=%d" % (parentNode.name, len(parentNode.children)))
             return
 
-        # use "free" CS1 key
-        if self.options.useFreeFib1 and fib1NodeIndex >= 0:
-            fib1Node = newNodes[fib1NodeIndex]
-            self._trace("useFreeFib1 %s" % fib1Node.name)
-            for node in newNodes[0:fib1NodeIndex]:
+        # skip if covered by FIB entry
+        if fibEntryNodeIndex >= 0:
+            fibEntryNode = newNodes[fibEntryNodeIndex]
+            self._trace("underFibEntry %s" % fibEntryNode.name)
+            for node in newNodes[0:fibEntryNodeIndex]:
                 node.labelCs2()
-            fib1Node.labelCs1()
+            fibEntryNode.labelCs1()
             self.ait.checkInvariants()
             return
-            # XXX This implementation does not handle FIB1 key deletion,
+            # XXX This implementation does not handle FIB entry deletion,
             #     and also assumes FIB1 key has short names so that:
             #     (a) FP2/FP1 reductions aren't necessary in this insertion;
             #     (b) FP2/FP1 reductions on FIB1 key aren't prevented for future insertions.
@@ -468,13 +466,13 @@ class ActiveCs:
 
         self.ait.checkInvariants()
 
-ActiveCs.Options = AitCsOptions
+ActiveCs.Options = ActiveCsOptions
 ActiveCs.DegreeThreshold = DegreeThreshold
 
 if __name__ == "__main__":
     from nic import Nic
     nic = Nic(128, 128, 128)
-    options = ActiveCsOptions(useFreeFib1=False, bf2Capacity=(5,8), bf1Capacity=(5,8))
+    options = ActiveCsOptions(bf2Capacity=(5,8), bf1Capacity=(5,8))
     cs = ActiveCs(nic, options, trace=sys.stderr)
     print cs.ait
     names = [ "/".join(["", c1, c2, c3]) for c1 in "ABCD" for c2 in "abcd" for c3 in "1234" ]
