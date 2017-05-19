@@ -52,7 +52,6 @@ class NicBloomFilter:
         self.table = dict()
         self.hasher = NicBloomFilter.__makeHasher(hasher, m)
         self.isUpdating = False
-        self.bits = set()
 
     def __len__(self):
         return len(self.table)
@@ -69,6 +68,9 @@ class NicBloomFilter:
 
         hashes = self.hasher(key)
         for h in hashes:
+            if self.buckets[h] == 0:
+                self.clearBits.discard(h)
+                self.setBits.add(h)
             self.buckets[h] += 1
 
     def remove(self, key, reasonCode):
@@ -90,6 +92,9 @@ class NicBloomFilter:
         hashes = self.hasher(key)
         for h in hashes:
             self.buckets[h] -= 1
+            if self.buckets[h] == 0:
+                self.setBits.discard(h)
+                self.clearBits.add(h)
 
     def beginUpdate(self):
         """
@@ -97,6 +102,8 @@ class NicBloomFilter:
         """
         assert not self.isUpdating
         self.isUpdating = True
+        self.setBits = set()
+        self.clearBits = set()
 
     def endUpdate(self):
         """
@@ -106,10 +113,7 @@ class NicBloomFilter:
         """
         assert self.isUpdating
         self.isUpdating = False
-        oldBits = self.bits
-        newBits = set([ h for h,c in enumerate(self.buckets) if c > 0 ])
-        self.bits = newBits
-        return (len(newBits - oldBits), len(oldBits - newBits))
+        return (len(self.setBits), len(self.clearBits))
 
     def query(self, key):
         """
