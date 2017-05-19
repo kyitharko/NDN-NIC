@@ -159,7 +159,7 @@ class AitNode(NameTreeNode):
         self._clearCs2Fields()
 
         for child in self.iterChildren():
-            if child._isPmfpReductionEligible():
+            if child._canReversion():
                 self.nCs1Descendants += 1
                 self.shallowestCs1Dist = 1
                 self.shallowestCs1Ptr = child
@@ -186,38 +186,38 @@ class AitNode(NameTreeNode):
         if self.parent is not None:
             self.parent._updateCs2Fields()
 
-    def _isPmfpReductionEligible(self):
+    def _canReversion(self):
         return self.hasCs1 and not self.hasFibEntry and len(self.children) <= self.tree.degreeThreshold(self)
 
-    def findReduction2(self):
+    def findTransformation(self):
         """
-        Find a target for FP2 reduction within this subtree.
+        Find a target for Transformation operation within this subtree.
         """
         if self.deepestCs2Dist is None:
             return None
         if self.deepestCs2Dist == 0:
             return self
-        return self.deepestCs2Ptr.findReduction2()
+        return self.deepestCs2Ptr.findTransformation()
 
-    def findReduction1(self):
+    def findAggregation(self):
         """
-        Find a target for FP1 reduction within this subtree.
+        Find a target for Aggregation operation within this subtree.
         """
         if self.deepestMultiCs1Dist is None:
             return None
         if self.deepestMultiCs1Dist == 0:
             return self
-        return self.deepestMultiCs1Ptr.findReduction1()
+        return self.deepestMultiCs1Ptr.findAggregation()
 
-    def findReductionPmfp(self):
+    def findReversion(self):
         """
-        Find a target for PMFP reduction within this subtree.
+        Find a target for Reversion operation within this subtree.
         """
-        if self._isPmfpReductionEligible():
+        if self._canReversion():
             return self
         if self.shallowestCs1Dist is None:
             return None
-        return self.shallowestCs1Ptr.findReductionPmfp()
+        return self.shallowestCs1Ptr.findReversion()
 
 class DegreeThreshold:
     """
@@ -249,7 +249,7 @@ class Ait(NameTree):
         """
         Constructor.
 
-        :param DegreeThreshold degreeThreshold: maximum degree of a node for eligibility in findReductionPmfp
+        :param DegreeThreshold degreeThreshold: maximum degree of a node for eligibility in findReversion
         :param file trace: a file-like object to write trace logs, or None to disable trace logs
         """
         NameTree.__init__(self, node=AitNode)
@@ -402,10 +402,8 @@ class ActiveCs:
             fibEntryNode.labelCs1()
             self.ait.checkInvariants()
             return
-            # XXX This implementation does not handle FIB entry deletion,
-            #     and also assumes FIB1 key has short names so that:
-            #     (a) FP2/FP1 reductions aren't necessary in this insertion;
-            #     (b) FP2/FP1 reductions on FIB1 key aren't prevented for future insertions.
+            # XXX This implementation does not handle FIB entry deletion, and assumes FIB entry
+            #     has short names so that Transformation/Aggregation is not necessary.
 
         # add CS2 keys
         for node in newNodes:
@@ -417,18 +415,18 @@ class ActiveCs:
             self._trace("exceedDegree %s degree=%d" % (parentNode.name, len(parentNode.children)))
             parentNode.labelCs1()
 
-        # FP2 reduction
+        # Transformation
         while len(self.bfCs) > self.bfCsHigh:
-            target = self.ait.root.findReduction2()
-            self._trace("reduction2 bf2=%d %s" % (len(self.bfCs), "none" if target is None else target.name))
+            target = self.ait.root.findTransformation()
+            self._trace("transformation bfCs=%d %s" % (len(self.bfCs), "none" if target is None else target.name))
             if target is None:
                 break
             target.labelCs1()
 
-        # FP1 reduction
+        # Aggregation
         while len(self.bfFib) > self.bfFibHigh:
-            target = self.ait.root.findReduction1()
-            self._trace("reduction1 bf1=%d %s" % (len(self.bfFib), "none" if target is None else target.name))
+            target = self.ait.root.findAggregation()
+            self._trace("aggregation bfFib=%d %s" % (len(self.bfFib), "none" if target is None else target.name))
             if target is None:
                 break
             target.labelCs1()
@@ -454,10 +452,10 @@ class ActiveCs:
             node.unlabelCs1()
             del self.ait[node.name]
 
-        # PMFP reduction
+        # Reversion
         while len(self.ait) > 0 and len(self.bfCs) < self.bfCsLow and len(self.bfFib) < self.bfFibLow:
-            target = self.ait.root.findReductionPmfp()
-            self._trace("reductionPmfp bf2=%d bf1=%d %s" % (len(self.bfCs), len(self.bfFib), "none" if target is None else target.name))
+            target = self.ait.root.findReversion()
+            self._trace("reversion bfCs=%d bfFib=%d %s" % (len(self.bfCs), len(self.bfFib), "none" if target is None else target.name))
             if target is None:
                 break
             target.labelCs2()
