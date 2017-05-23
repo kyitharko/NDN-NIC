@@ -27,6 +27,10 @@ This branch contains the exact parameters used to generate the plots.
 
         for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash ../bfsize.sh && popd; done
 
+5.  Run nhash script:
+
+        for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash ../nhash.sh && popd; done
+
 ## Plotting
 
 See scripts in paper repository.
