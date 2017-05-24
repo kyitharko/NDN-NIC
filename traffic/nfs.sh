@@ -27,6 +27,13 @@ fi
   done
 
   for OPSTRACE in $(ls $NFS_DATASET/replay/$NFS_TIMEPERIOD.*.ops); do
+    ACTIVITY=$(wc -l < $OPSTRACE)
+    if [[ -n $NFS_MIN ]] && [[ $ACTIVITY -lt $NFS_MIN ]]; then
+      continue
+    fi
+    if [[ -n $NFS_MAX ]] && [[ $ACTIVITY -gt $NFS_MAX ]]; then
+      continue
+    fi
     I=$((I+1))
     HOST=h$I
     echo -n ,c:$HOST:$HOST:$OPSTRACE
