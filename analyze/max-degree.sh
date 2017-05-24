@@ -1,10 +1,16 @@
 #!/bin/bash
-# Plot max-degree from any ait-trace.
-# Usage: ./max-degree.sh
+# Plot max-degree from ait-trace.
+# Usage: ./max-degree.sh key
+# KEY should be a run with unlimited degree threshold.
+# Any ait-trace satisfying this requirement would give the same results.
 
 R="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
+KEY=$1
 
-KEY=$(ls *.ait-trace.log.xz | awk 'BEGIN { FS=OFS="." } NR==1 { NF-=4; print }')
+if [[ -z $KEY ]] || ! find $KEY.*.ait-trace.log.xz >&/dev/null; then
+  echo 'Usage: ./max-degree.sh key'
+  exit 2
+fi
 
 ls $KEY.*.ait-trace.log.xz | gawk '
 BEGIN {
@@ -15,16 +21,14 @@ BEGIN {
   n = split(file, a, ".")
   host = a[n-3]
 
-  while (("xzcat " file |& getline) > 0) {
-    if ($1 == "parentDegree") {
-      name = $2
-      degree = substr($3, 8)
-      if (degree > maxDegree[name]) {
-        maxDegree[name] = degree
-      }
+  while (("xzgrep ^parentDegree " file |& getline) > 0) {
+    name = $2
+    degree = substr($3, 8)
+    if (degree > maxDegree[name]) {
+      maxDegree[name] = degree
     }
   }
-  close("xzcat " file)
+  close("xzgrep ^parentDegree " file)
 
   for (name in maxDegree) {
     nComponents = split(name, a, "/") - 1
@@ -73,8 +77,7 @@ END {
 }
 ' > max-degree-subtotals.tsv
 
-YMAX=$(cut -f8 max-degree-subtotals.tsv | sort -nr | head -1)
-YMAX=$((2*YMAX))
+YMAX=$(cut -f5 max-degree-subtotals.tsv | sort -nr | head -1)
 
 gnuplot -e '
 set term pdfcairo dashed font ",20";

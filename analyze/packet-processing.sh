@@ -33,7 +33,7 @@ for KEY1 in $(ls $KEY.*.nd.tsv.xz | awk 'BEGIN { FS=OFS="." } { NF-=4; print }' 
   if find $KEY1.*.ait-trace.log.xz >&/dev/null; then
     echo -ne '\t'
     if [[ -f $KEY1.ait-computation.tsv ]]; then
-      echo -n $(awk 'BEGIN { FS="\t" } NR>1 { sum+=$6 } END { print sum }' $KEY1.ait-computation.tsv)
+      echo -n $(awk 'BEGIN { FS="\t" } NR>1 { sum+=$5 } END { print sum }' $KEY1.ait-computation.tsv)
     else
       echo -n 'MISSING'
     fi

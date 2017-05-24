@@ -28,8 +28,14 @@ for H in $(ls *.ttt.tsv.xz | sed 's/.ttt.tsv.xz//'); do
   echo "xzcat $H.ttt.tsv.xz | python2 $R/nicsim/nicsim.py --comment=$KEY.$H $PARAMS1 --nd >(xz > $KEY.$H.nd.tsv.xz) --bfu >(xz > $KEY.$H.bfu.tsv.xz)"
 done | $R/analyze/parallelize.sh
 
+if find $KEY.*.ait-trace.log >&/dev/null; then
+  for F in $KEY.*.ait-trace.log; do echo xz $F; done | $NDNNICROOT/analyze/parallelize.sh
+fi
+if find $KEY.*.ait-trace.log.xz >&/dev/null && ! [[ -f $KEY.ait-computation.tsv ]]; then
+  ls $KEY.*.ait-trace.log.xz | $NDNNICROOT/analyze/ait-computation.awk > $KEY.ait-computation.tsv
+fi
 
-if [[ ! -f $KEY.quick-analyze.tsv ]] && [[ -z $NO_QUICK_ANALYZE ]]; then
+if ! [[ -f $KEY.quick-analyze.tsv ]]; then
 (
   echo -n host
   echo -ne '\t'
@@ -72,6 +78,4 @@ if [[ ! -f $KEY.quick-analyze.tsv ]] && [[ -z $NO_QUICK_ANALYZE ]]; then
 ) > $KEY.quick-analyze.tsv
 fi
 
-if [[ -f $KEY.quick-analyze.tsv ]]; then
-  column -t $KEY.quick-analyze.tsv
-fi
+column -t $KEY.quick-analyze.tsv

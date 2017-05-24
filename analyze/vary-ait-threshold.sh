@@ -1,18 +1,20 @@
 #!/bin/bash
 # Plot false positive rate as a function of AIT thresholds.
-# Usage: ./vary-ait-threshold.sh key thresholds params..
-#   key: prefix of output file names
-#   thresholds: a TSV file where each line is a tuple of degreeThreshold,fp2Low,fp2High,fp1Low,fp1High,[FIB1|noFIB1];
+# Usage: ./vary-ait-threshold.sh thresholds bfkey params..
+#   thresholds: a TSV file where each line is a tuple of degreeThreshold,fp2Low,fp2High,fp1Low,fp1High;
 #               fp thresholds should omit leading "0.";
 #               specify <multiplier>x as low limit to have Ait compute low limit automatically
+#   sizes: a TSV file where each line is a tuple of BF-FIB,BF-CS,BF-PIT size
 #   params: passed to nicsim.py
 
 R="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 
-KEY=$1
-THRESHOLDS_FILE=$2
-if [[ -z $KEY ]] || [[ ! -r $THRESHOLDS_FILE ]]; then
-  echo 'Usage: ./vary-ait-threshold.sh key thresholds params..'
+export BFSIZE_REPORT_TAG=NONE
+
+THRESHOLDS_FILE=$1
+SIZES_FILE=$2
+if [[ ! -r $THRESHOLDS_FILE ]] || [[ ! -r $SIZES_FILE ]]; then
+  echo 'Usage: ./vary-ait-threshold.sh thresholds sizes params..'
   exit 2
 fi
 shift 2
@@ -28,14 +30,7 @@ while read -r -a THRESHOLDS; do
   FP2HIGH=${THRESHOLDS[2]}
   FP1LOW=${THRESHOLDS[3]}
   FP1HIGH=${THRESHOLDS[4]}
-  if [[ ${THRESHOLDS[5]} == "FIB1" ]]; then
-    KEYFREEFIB1="freeFib1"
-    FREEFIB1="useFreeFib1=True"
-  else
-    KEYFREEFIB1="noFib1"
-    FREEFIB1="useFreeFib1=False"
-  fi
-  KEY1=$KEY.degree-${DEGREE//,/-}_fp2-${FP2LOW}-${FP2HIGH}_fp1-${FP1LOW}-${FP1HIGH}_${KEYFREEFIB1}
+  KEY=active_degree-${DEGREE//,/-}_fp2-${FP2LOW}-${FP2HIGH}_fp1-${FP1LOW}-${FP1HIGH}
 
   if [[ $FP2LOW == *x ]]; then
     FP2THRESHOLD="(None,0.$FP2HIGH,${FP2LOW::-1})"
@@ -48,17 +43,10 @@ while read -r -a THRESHOLDS; do
     FP1THRESHOLD="(0.$FP1LOW,0.$FP1HIGH)"
   fi
 
-  echo -n "NO_QUICK_ANALYZE=1 $R/analyze/one.sh $KEY1 --cs=\"AitCs(nic, AitCs.Options($FREEFIB1,degreeThreshold=AitCs.DegreeThreshold($DEGREE), fp2Threshold=$FP2THRESHOLD, fp1Threshold=$FP2THRESHOLD), trace=open('KEY.HOSTNAME.ait-trace.log','w'))\" $PARAMS"
-  echo -n " ; find $KEY1.*.ait-trace.log -exec xz -f {} \\; 2>/dev/null"
-
-  if [[ ! -f $KEY1.fp-classify.tsv ]]; then
-    echo -n " ; ls $KEY1.*.nd.tsv.xz | gawk -f $R/analyze/fp-classify.awk > $KEY1.fp-classify.tsv"
-  fi
-  if [[ ! -f $KEY1.ait-computation.tsv ]]; then
-    echo -n " ; ls $KEY1.*.ait-trace.log.xz | gawk -f $R/analyze/ait-computation.awk > $KEY1.ait-computation.tsv"
-  fi
-  echo
+  echo "$R/analyze/vary-bf-size.sh $KEY $SIZES_FILE --cs=\"ActiveCs(nic,ActiveCs.Options(degreeThreshold=ActiveCs.DegreeThreshold($DEGREE),fp2Threshold=$FP2THRESHOLD,fp1Threshold=$FP1THRESHOLD),trace=open('KEY.HOSTNAME.ait-trace.log','w'))\" $PARAMS"
 done < $THRESHOLDS_FILE | $R/analyze/parallelize.sh
+
+exit # TODO restore the report
 
 (
   echo -n degree
