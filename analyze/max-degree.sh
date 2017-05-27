@@ -1,47 +1,18 @@
 #!/bin/bash
-# Plot max-degree from ait-trace.
-# Usage: ./max-degree.sh key
-# KEY should be a run with unlimited degree threshold.
-# Any ait-trace satisfying this requirement would give the same results.
+# Plot max-degree from TTT.
+# Usage: ./max-degree.sh
 
 R="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
-KEY=$1
 
-if [[ -z $KEY ]] || ! find $KEY.*.ait-trace.log.xz >&/dev/null; then
-  echo 'Usage: ./max-degree.sh key'
-  exit 2
-fi
+for H in $(ls *.ttt.tsv.xz | sed 's/.ttt.tsv.xz//'); do
+  if [[ -f $H.max-degree.tsv.xz ]]; then
+    continue
+  fi
+  echo "xzcat $H.ttt.tsv.xz | python2 $R/nicsim/max_degree.py --comment=$H | xz > $H.max-degree.tsv.xz"
+done | $R/analyze/parallelize.sh
 
-ls $KEY.*.ait-trace.log.xz | gawk '
-BEGIN {
-  OFS = "\t"
-}
-{
-  file = $1
-  n = split(file, a, ".")
-  host = a[n-3]
-
-  while (("xzgrep ^parentDegree " file |& getline) > 0) {
-    name = $2
-    degree = substr($3, 8)
-    if (degree > maxDegree[name]) {
-      maxDegree[name] = degree
-    }
-  }
-  close("xzgrep ^parentDegree " file)
-
-  for (name in maxDegree) {
-    nComponents = split(name, a, "/") - 1
-    if (name == "/") {
-      nComponents = 0
-    }
-    print host, name, nComponents, maxDegree[name]
-  }
-  delete maxDegree
-}
-' > max-degree.tsv
-
-sort -k3n -k4n max-degree.tsv \
+xzcat *.max-degree.tsv.xz \
+| sort -k2n -k3n \
 | gawk '
 function printSubtotal() {
   if (nComponents == -1) {
@@ -57,20 +28,20 @@ function printSubtotal() {
 }
 BEGIN {
   FS = OFS = "\t"
-  nComponents = -1
+  nComponents = 0
   sum = cnt = 0
+  print "nComponents", "cnt", "avg", "min", "max", "mean", "percentile80", "percentile90"
 }
-$3!=nComponents {
+$2 != nComponents {
   printSubtotal()
-
-  nComponents = $3
+  nComponents = $2
   sum = cnt = 0
   delete vector
 }
 {
-  vector[cnt] = $4
+  vector[cnt] = $3
   ++cnt
-  sum += $4
+  sum += $3
 }
 END {
   printSubtotal()
@@ -78,6 +49,11 @@ END {
 ' > max-degree-subtotals.tsv
 
 YMAX=$(cut -f5 max-degree-subtotals.tsv | sort -nr | head -1)
+
+if ! which gnuplot >/dev/null; then
+  echo 'Skipping plotting: gnuplot is unavailable.' >/dev/stderr
+  exit
+fi
 
 gnuplot -e '
 set term pdfcairo dashed font ",20";

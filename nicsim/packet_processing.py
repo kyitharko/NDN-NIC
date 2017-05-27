@@ -19,59 +19,9 @@
 import os
 import sys
 import nameutil
-from name_tree import NameTree, NameTreeNode
 from nic import Nic
 from nic_sim import NicSim
-
-class NopTable:
-    def insert(self, name):
-        pass
-
-    def erase(self, name):
-        pass
-
-class TreeCsNode(NameTreeNode):
-    def _init(self):
-        self.inCs = False
-
-    def _printAttributes(self):
-        return "CS " if self.inCs else ""
-
-    def lookup(self):
-        if self.inCs:
-            return self.name, 0
-        cost = 0
-        for child in self.iterChildren():
-            found, c = child.lookup()
-            cost += 1 + c
-            if found is not None:
-                return found, cost
-        return None, cost
-
-class TreeCs:
-    def __init__(self):
-        self.tree = NameTree(node=TreeCsNode)
-
-    def insert(self, name):
-        for prefix in nameutil.getPrefixes(name):
-            node = self.tree[prefix]
-
-        node.inCs = True # node refers to the tree[name]
-
-    def erase(self, name):
-        node = self.tree[name]
-        node.inCs = False
-
-        while node is not None and node.inCs is False and len(node.children) == 0:
-            parent = node.parent
-            del self.tree[node.name]
-            node = parent
-
-    def computeLookupCost(self, name):
-        if name not in self.tree:
-            return 0
-        found, cost = self.tree[name].lookup()
-        return cost
+from table import NopTable, TreeCs
 
 class PacketProcessingOverheadEstimator(NicSim):
     """

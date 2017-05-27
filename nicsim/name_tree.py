@@ -58,6 +58,12 @@ class NameTreeNode:
         return "\n".join([ "%s%s %s" % ("  " * indent, lastComp, self._printAttributes()) ] +
                          [ child.printSubtree(indent + 1) for child in self.iterChildren() ])
 
+    def addChild(self, child):
+        self.children[child.name] = child
+
+    def removeChild(self, child):
+        del self.children[child.name]
+
     def iterChildren(self):
         """
         Iterate over children of this node.
@@ -107,21 +113,20 @@ class NameTree(dict):
         if name == "/":
             self.root = node
         else:
-            parent.children[name] = node
+            parent.addChild(node)
         return node
 
     def __delitem__(self, name):
-        if name not in self:
+        node = self.get(name)
+        if node is None:
             raise KeyError("node does not exist")
-
-        node = self[name]
         if len(node.children) > 0:
             raise KeyError("cannot delete node %s with %d children" % (name, len(node.children)))
 
         if name == "/":
             self.root = None
         else:
-            del node.parent.children[name]
+            node.parent.removeChild(node)
         dict.__delitem__(self, name)
 
     def _printAttributes(self):
