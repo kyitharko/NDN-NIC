@@ -43,6 +43,33 @@ while read -r -a THRESHOLDS; do
     FP1THRESHOLD="(0.$FP1LOW,0.$FP1HIGH)"
   fi
 
+  if [[ $DEGREE =~ ^maxdeg- ]]; then
+    if ! [[ -f max-degree-subtotals.tsv ]]; then
+      echo 'Run max-degree.sh first.' >/dev/stderr
+      continue
+    fi
+    DEGREE=$(awk '
+      NR==1 {
+        for (i=1; i<=NF; ++i) {
+          if (("maxdeg-" $i) == "'$DEGREE'") {
+            next
+          }
+        }
+        print "'$DEGREE' column not found." >"/dev/stderr"
+        exit
+      }
+      NR>2 {
+        printf ","
+      }
+      NR>1 {
+        printf "%d", int(0.99 + $i)
+      }
+    ' max-degree-subtotals.tsv)
+    if [[ -z $DEGREE ]]; then
+      exit 1
+    fi
+  fi
+
   echo "$R/analyze/vary-bf-size.sh $KEY $SIZES_FILE --cs=\"ActiveCs(nic,ActiveCs.Options(degreeThreshold=ActiveCs.DegreeThreshold($DEGREE),fp2Threshold=$FP2THRESHOLD,fp1Threshold=$FP1THRESHOLD),trace=open('KEY.HOSTNAME.ait-trace.log','w'))\" $PARAMS >/dev/null"
 done < $THRESHOLDS_FILE | $R/analyze/parallelize.sh
 
