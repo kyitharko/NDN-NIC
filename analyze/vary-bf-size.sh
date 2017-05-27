@@ -29,10 +29,6 @@ while read -r -a SIZES; do
   echo "$R/analyze/one.sh $KEY1 --bf1=$BF1SIZE$BF1EXTRA --bf2=$BF2SIZE$BF2EXTRA --bf3=$BF3SIZE$BF3EXTRA $PARAMS >/dev/null"
 done < $SIZES_FILE | $R/analyze/parallelize.sh
 
-if [[ $BFSIZE_REPORT_TAG == 'NONE' ]]; then
-  exit
-fi
-
 (
   echo -n BF-FIB
   echo -ne '\t'

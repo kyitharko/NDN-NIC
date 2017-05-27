@@ -9,7 +9,7 @@
 
 R="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 
-export BFSIZE_REPORT_TAG=NONE
+export BFSIZE_REPORT_TAG=ait-bfsize
 
 THRESHOLDS_FILE=$1
 SIZES_FILE=$2
@@ -43,45 +43,33 @@ while read -r -a THRESHOLDS; do
     FP1THRESHOLD="(0.$FP1LOW,0.$FP1HIGH)"
   fi
 
-  echo "$R/analyze/vary-bf-size.sh $KEY $SIZES_FILE --cs=\"ActiveCs(nic,ActiveCs.Options(degreeThreshold=ActiveCs.DegreeThreshold($DEGREE),fp2Threshold=$FP2THRESHOLD,fp1Threshold=$FP1THRESHOLD),trace=open('KEY.HOSTNAME.ait-trace.log','w'))\" $PARAMS"
+  echo "$R/analyze/vary-bf-size.sh $KEY $SIZES_FILE --cs=\"ActiveCs(nic,ActiveCs.Options(degreeThreshold=ActiveCs.DegreeThreshold($DEGREE),fp2Threshold=$FP2THRESHOLD,fp1Threshold=$FP1THRESHOLD),trace=open('KEY.HOSTNAME.ait-trace.log','w'))\" $PARAMS >/dev/null"
 done < $THRESHOLDS_FILE | $R/analyze/parallelize.sh
 
-exit # TODO restore the report
-
 (
-  echo -n degree
+  echo -n DEGREE
   echo -ne '\t'
-  echo -n fp2low
+  echo -n FP2LOW
   echo -ne '\t'
-  echo -n fp2high
+  echo -n FP2HIGH
   echo -ne '\t'
-  echo -n fp1low
+  echo -n FP1LOW
   echo -ne '\t'
-  echo -n fp1high
+  echo -n FP1HIGH
   echo -ne '\t'
-  echo -n freeFib1
-  echo -ne '\t'
-  echo -n $(echo | gawk -f $R/analyze/fp-classify.awk | head -1)
-  echo
-) > $KEY.vary-ait-threshold.tsv
+  echo $(head -1 $(find active_*.ait-bfsize.tsv | head -1))
 
-while read -r -a THRESHOLDS; do
-  DEGREE=${THRESHOLDS[0]}
-  FP2LOW=${THRESHOLDS[1]}
-  FP2HIGH=${THRESHOLDS[2]}
-  FP1LOW=${THRESHOLDS[3]}
-  FP1HIGH=${THRESHOLDS[4]}
-  if [[ ${THRESHOLDS[5]} == "FIB1" ]]; then
-    KEYFREEFIB1="freeFib1"
-    FREEFIB1="Y"
-  else
-    KEYFREEFIB1="noFib1"
-    FREEFIB1="N"
-  fi
-  KEY1=$KEY.degree-${DEGREE//,/-}_fp2-${FP2LOW}-${FP2HIGH}_fp1-${FP1LOW}-${FP1HIGH}_${KEYFREEFIB1}
+  while read -r -a THRESHOLDS; do
+    DEGREE=${THRESHOLDS[0]}
+    FP2LOW=${THRESHOLDS[1]}
+    FP2HIGH=${THRESHOLDS[2]}
+    FP1LOW=${THRESHOLDS[3]}
+    FP1HIGH=${THRESHOLDS[4]}
+    KEY=active_degree-${DEGREE//,/-}_fp2-${FP2LOW}-${FP2HIGH}_fp1-${FP1LOW}-${FP1HIGH}
 
-  tail -n+2 $KEY1.fp-classify.tsv | \
-  sed -e "s/^/$DEGREE\t$FP2LOW\t$FP2HIGH\t$FP1LOW\t$FP1HIGH\t$FREEFIB1\t/"
-done < $THRESHOLDS_FILE >> $KEY.vary-ait-threshold.tsv
+    tail -n+2 $KEY.ait-bfsize.tsv | \
+    sed -e "s/^/$DEGREE\t$FP2LOW\t$FP2HIGH\t$FP1LOW\t$FP1HIGH\t/"
+  done < $THRESHOLDS_FILE
+) > vary-ait-threshold.tsv
 
-column -t $KEY.vary-ait-threshold.tsv
+column -t vary-ait-threshold.tsv
