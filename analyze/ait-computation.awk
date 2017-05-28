@@ -8,7 +8,10 @@
 
 BEGIN {
   OFS = "\t"
-
+  totalTransformation = 0
+  totalAggregation = 0
+  totalReversion = 0
+  totalNodeAccess = 0
   print "host", "nTransformation", "nAggregation", "nReversion", "nNodeAccess"
 }
 {
@@ -51,4 +54,11 @@ BEGIN {
   close("xzcat " file)
 
   print host, nTransformation, nAggregation, nReversion, nNodeAccess
+  totalTransformation += nTransformation
+  totalAggregation += nAggregation
+  totalReversion += nReversion
+  totalNodeAccess += nNodeAccess
+}
+END {
+  print "+", totalTransformation, totalAggregation, totalReversion, totalNodeAccess
 }

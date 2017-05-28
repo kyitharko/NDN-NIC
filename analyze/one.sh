@@ -35,6 +35,42 @@ if find $KEY.*.ait-trace.log.xz >&/dev/null && ! [[ -f $KEY.ait-computation.tsv 
   ls $KEY.*.ait-trace.log.xz | $NDNNICROOT/analyze/ait-computation.awk > $KEY.ait-computation.tsv
 fi
 
+if ! [[ -f $KEY.ntnode-access.tsv ]]; then
+  for H in $(ls *.ttt.tsv.xz | sed 's/.ttt.tsv.xz//'); do
+    echo "paste <(xzcat $KEY.$H.nd.tsv.xz) <(xzcat $H.packet-processing-base.tsv.xz) | awk 'BEGIN { FS=\"\\t\"; v=0 } \$6!=\"DROP\" { v+=\$12 } END { print v }' >$KEY.$H.packet-processing.sum.txt"
+  done | $R/analyze/parallelize.sh
+  AITFILE=$KEY.ait-computation.tsv
+  if ! [[ -f $AITFILE ]]; then
+    AITFILE=/dev/null
+  fi
+  ls *.ttt.tsv.xz | sed 's/.ttt.tsv.xz//' | awk '
+    BEGIN {
+      OFS = "\t"
+      print "HOST", "PKT-PROC", "AIT", "TOTAL"
+
+      while ((getline < "'$AITFILE'") > 0) {
+        aits[$1] == $4
+      }
+      aits["+"] = 0
+
+      totalPktProc = 0
+      totalAit = 0
+    }
+    {
+      getline pktProc < ("'$KEY'." $1 ".packet-processing.sum.txt")
+      ait = 0 + aits[$1]
+      print $1, pktProc, ait, (pktProc+ait)
+
+      totalPktProc += pktProc
+      totalAit += ait
+    }
+    END {
+      print "+", totalPktProc, totalAit, (totalPktProc+totalAit)
+    }
+  ' > $KEY.ntnode-access.tsv
+  rm $KEY.*.packet-processing.sum.txt
+fi
+
 if ! [[ -f $KEY.quick-analyze.tsv ]]; then
 (
   echo -n host
