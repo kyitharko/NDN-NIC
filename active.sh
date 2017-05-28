@@ -5,6 +5,4 @@ export BF2EXTRA=,xor,../bf2.poly
 export BF3EXTRA=,xor,../bf3.poly
 export JOBS=4x1x10
 
-$NDNNICROOT/analyze/vary-ait-threshold.sh ../active.fpthres.tsv ../active.bfsize.tsv
-
-# TODO tailored degree threshold
+$NDNNICROOT/analyze/vary-ait-threshold.sh ../active.thres.tsv ../active.bfsize.tsv

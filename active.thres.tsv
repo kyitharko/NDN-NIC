@@ -13,3 +13,5 @@
 128 2x 001 2x 001
 64,32,16 2x 001 2x 001
 64,64,32,16 2x 001 2x 001
+maxdeg-mean 2x 001 2x 001
+maxdeg-percentile90 2x 001 2x 001

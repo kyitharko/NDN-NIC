@@ -19,9 +19,9 @@ This branch contains the exact parameters used to generate the plots.
         dd if=/dev/urandom of=bf2.poly bs=1M count=64
         dd if=/dev/urandom of=bf3.poly bs=1M count=64
 
-3.  Establish baseline of packet processing overhead:
+3.  Establish baselines:
 
-        for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash $NDNNICROOT/analyze/packet-processing-base.sh && popd; done
+        for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash $NDNNICROOT/analyze/packet-processing-base.sh && bash $NDNNICROOT/analyze/max-degree.sh && popd; done
 
 4.  Run bfsize script:
 
@@ -30,6 +30,10 @@ This branch contains the exact parameters used to generate the plots.
 5.  Run nhash script:
 
         for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash ../nhash.sh && popd; done
+
+5.  Run active thresholds script:
+
+        for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash ../active.sh && popd; done
 
 ## Plotting
 
