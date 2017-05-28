@@ -49,7 +49,7 @@ if ! [[ -f $KEY.ntnode-access.tsv ]]; then
       print "HOST", "PKT-PROC", "AIT", "TOTAL"
 
       while ((getline < "'$AITFILE'") > 0) {
-        aits[$1] == $4
+        aits[$1] = $5
       }
       aits["+"] = 0
 
@@ -70,48 +70,3 @@ if ! [[ -f $KEY.ntnode-access.tsv ]]; then
   ' > $KEY.ntnode-access.tsv
   rm $KEY.*.packet-processing.sum.txt
 fi
-
-if ! [[ -f $KEY.quick-analyze.tsv ]]; then
-(
-  echo -n host
-  echo -ne '\t'
-  echo -n nPackets
-  echo -ne '\t'
-  echo -n nSwAccepts
-  echo -ne '\t'
-  echo -n nNicAccepts
-  echo -ne '\t'
-  echo -n nFalsePositives
-  echo -ne '\t'
-  echo -n nFalseNegatives
-  echo -ne '\t'
-  echo -n nTableChanges
-  echo -ne '\t'
-  echo -n nBfUpdates
-  echo
-
-  for H in $(ls *.ttt.tsv.xz | sed 's/.ttt.tsv.xz//'); do
-    echo -n $H
-    echo -ne '\t'
-    xzcat $KEY.$H.nd.tsv.xz | awk '
-    BEGIN { OFS = "\t"; ORS = "" }
-    { ++nPackets }
-    $5 != "DROP" { ++nSwAccepts }
-    $6 != "DROP" { ++nNicAccepts }
-    $5 == "DROP" && $6 != "DROP" { ++nFalsePositives }
-    $5 != "DROP" && $6 == "DROP" { ++nFalseNegatives }
-    END { print 0 + nPackets, 0 + nSwAccepts, 0 + nNicAccepts, 0 + nFalsePositives, 0 + nFalseNegatives }
-    '
-    echo -ne '\t'
-    xzcat $KEY.$H.bfu.tsv.xz | awk '
-    BEGIN { OFS = "\t"; ORS = "" }
-    { ++nTableChanges }
-    $5 != 0 || $6 != 0 || $7 != 0 || $8 != 0 || $9 != 0 || $10 != 0 { ++nBfUpdates }
-    END { print 0 + nTableChanges, 0 + nBfUpdates }
-    '
-    echo
-  done
-) > $KEY.quick-analyze.tsv
-fi
-
-column -t $KEY.quick-analyze.tsv
