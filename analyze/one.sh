@@ -19,13 +19,20 @@ for PARAM in "$@"; do
 done
 
 for H in $(ls *.ttt.tsv.xz | sed 's/.ttt.tsv.xz//'); do
-  if [[ -f $KEY.$H.nd.tsv.xz ]] && [[ -f $KEY.$H.bfu.tsv.xz ]]; then
-    continue
+  if [[ $KEY == 'regular' || $KEY == 'optimal' ]]; then
+    if [[ -f $KEY.$H.nd.tsv.xz ]]; then
+      continue
+    fi
+    echo "xzcat $H.ttt.tsv.xz | $R/analyze/special-nic.awk -v kind=$KEY | xz > $KEY.$H.nd.tsv.xz"
+  else
+    if [[ -f $KEY.$H.nd.tsv.xz ]] && [[ -f $KEY.$H.bfu.tsv.xz ]]; then
+      continue
+    fi
+    PARAMS1=$PARAMS
+    PARAMS1=${PARAMS1//KEY/$KEY}
+    PARAMS1=${PARAMS1//HOSTNAME/$H}
+    echo "xzcat $H.ttt.tsv.xz | python2 $R/nicsim/nicsim.py --comment=$KEY.$H $PARAMS1 --nd >(xz > $KEY.$H.nd.tsv.xz) --bfu >(xz > $KEY.$H.bfu.tsv.xz)"
   fi
-  PARAMS1=$PARAMS
-  PARAMS1=${PARAMS1//KEY/$KEY}
-  PARAMS1=${PARAMS1//HOSTNAME/$H}
-  echo "xzcat $H.ttt.tsv.xz | python2 $R/nicsim/nicsim.py --comment=$KEY.$H $PARAMS1 --nd >(xz > $KEY.$H.nd.tsv.xz) --bfu >(xz > $KEY.$H.bfu.tsv.xz)"
 done | $R/analyze/parallelize.sh
 
 if find $KEY.*.ait-trace.log >&/dev/null; then
