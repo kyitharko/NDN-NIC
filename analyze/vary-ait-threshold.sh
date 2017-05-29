@@ -84,7 +84,7 @@ done < $THRESHOLDS_FILE | $R/analyze/parallelize.sh
   echo -ne '\t'
   echo -n FP1HIGH
   echo -ne '\t'
-  echo $(head -1 $(find active_*.ait-bfsize.tsv | head -1))
+  head -1 $(find active_*.ait-bfsize.tsv | head -1)
 
   while read -r -a THRESHOLDS; do
     DEGREE=${THRESHOLDS[0]}

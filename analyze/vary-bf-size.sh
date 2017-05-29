@@ -36,7 +36,7 @@ done < $SIZES_FILE | $R/analyze/parallelize.sh
   echo -ne '\t'
   echo -n BF-PIT
   echo -ne '\t'
-  echo $(head -1 $(find $KEY.*.ntnode-access.tsv | head -1))
+  head -1 $(find $KEY.*.ntnode-access.tsv | head -1)
 
   while read -r -a SIZES; do
     BF1SIZE=${SIZES[0]}
