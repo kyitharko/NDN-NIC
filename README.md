@@ -23,15 +23,19 @@ This branch contains the exact parameters used to generate the plots.
 
         for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash $NDNNICROOT/analyze/packet-processing-base.sh && bash $NDNNICROOT/analyze/max-degree.sh && popd; done
 
-4.  Run bfsize script:
+4.  Run regular and optimal NIC simulations:
+
+        for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash $NDNNICROOT/analyze/one.sh regular && bash $NDNNICROOT/analyze/one.sh optimal && popd; done
+
+5.  Run bfsize script:
 
         for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash ../bfsize.sh && popd; done
 
-5.  Run nhash script:
+6.  Run nhash script:
 
         for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash ../nhash.sh && popd; done
 
-5.  Run active thresholds script:
+7.  Run active thresholds script:
 
         for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash ../active.sh && popd; done
 
