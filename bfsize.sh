@@ -9,5 +9,5 @@ $NDNNICROOT/analyze/vary-bf-size.sh direct ../bfsize.tsv --cs=DirectCs
 
 $NDNNICROOT/analyze/vary-bf-size.sh basic ../bfsize.tsv --cs=BasicCs
 
-ACTIVEKEY=active_degree-64-64-32-16_fp2-2x-001_fp1-2x-001
-$NDNNICROOT/analyze/vary-bf-size.sh $ACTIVEKEY ../bfsize.tsv --cs="ActiveCs(nic,ActiveCs.Options(degreeThreshold=ActiveCs.DegreeThreshold(64,64,32,16),fp2Threshold=(None,0.001,2),fp1Threshold=(None,0.001,2)),trace=open('KEY.HOSTNAME.ait-trace.log','w'))"
+ACTIVEKEY=active_degree-64-32-16_fp2-2x-001_fp1-2x-001
+$NDNNICROOT/analyze/vary-bf-size.sh $ACTIVEKEY ../bfsize.tsv --cs="ActiveCs(nic,ActiveCs.Options(degreeThreshold=ActiveCs.DegreeThreshold(64,32,16),fp2Threshold=(None,0.001,2),fp1Threshold=(None,0.001,2)),trace=open('KEY.HOSTNAME.ait-trace.log','w'))"
