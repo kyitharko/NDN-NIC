@@ -12,6 +12,8 @@ HOUR=$(printf %02d $HOUR)
 export NFS_DATASET=/nfs-dataset
 export NFS_TIMEPERIOD=${HOUR}00-${NEXTHOUR}00
 export NFS_DURATION=3700
+export NFS_MIN=200
+export NFS_MAX=2000
 export PYTHONPATH=$HOME/mnndn
 
 mkdir -p /data/nfs-$NFS_TIMEPERIOD
