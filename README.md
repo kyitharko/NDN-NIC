@@ -4,8 +4,13 @@ This branch contains the exact parameters used to generate the plots.
 
 ## NFS to TTT
 
-1. Process NFS trace by the hour with nfsdump `timeofday.sh` script.
-2. Run Mininet experiment with `nfs-exp-hour.sh`.
+1.  Process NFS trace by the hour with nfsdump `timeofday.sh` script.
+
+2.  Run Mininet experiment with `nfs-exp-hour.sh`.
+
+3.  Collect traffic statistics:
+
+        for DIR in $(bash nfs-hours.sh); do pushd $DIR && ls *.ttt.tsv.xz | $NDNNICROOT/analyze/ttt-stats.awk > ttt-stats.tsv && popd; done
 
 ## NIC simulation
 
