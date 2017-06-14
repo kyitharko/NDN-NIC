@@ -6,7 +6,11 @@ This branch contains the exact parameters used to generate the plots.
 
 1.  Process NFS trace by the hour with nfsdump `timeofday.sh` script.
 
+        for H in $(seq 0 23); do HOUR=$(printf %02d $H); NEXTHOUR=$(printf %02d $((H+1))); nfsdump/pathtree/timeofday.sh replay/${HOUR}00-${NEXTHOUR}00 $HOUR:00 $NEXTHOUR:00; done
+
 2.  Run Mininet experiment with `nfs-exp-hour.sh`.
+
+        for H in $(seq 0 23); do vagrant reload; vagrant ssh -c "bash /data/nfs-exp-hour.sh $H"; done
 
 3.  Collect traffic statistics:
 

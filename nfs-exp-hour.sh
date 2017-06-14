@@ -15,12 +15,13 @@ export NFS_DURATION=3700
 export NFS_MIN=200
 export NFS_MAX=2000
 export PYTHONPATH=$HOME/mnndn
+CSCAPACITY=65536
 
 mkdir -p /data/nfs-$NFS_TIMEPERIOD
 
 sudo rm -rf /tmp/mnndn /tmp/nfs-traffic.txt
 cd $HOME/NDN-NIC/traffic
-./nfs.sh &> /data/nfs-$NFS_TIMEPERIOD/exp.log
+./nfs.sh --cs=$CSCAPACITY &> /data/nfs-$NFS_TIMEPERIOD/exp.log
 
 for H in $(ls /tmp/mnndn); do
   cat /tmp/mnndn/$H/var/log/ndn/ttt.tsv.xz >/data/nfs-$NFS_TIMEPERIOD/$H.ttt.tsv.xz
