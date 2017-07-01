@@ -48,6 +48,10 @@ This branch contains the exact parameters used to generate the plots.
 
         for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash ../active.sh && popd; done
 
+8.  Collect BF update stats:
+
+        for DIR in $(bash nfs-hours.sh); do pushd $DIR && bash $NDNNICROOT/analyze/bfu.sh && popd; done
+
 ## Plotting
 
 See scripts in paper repository.
