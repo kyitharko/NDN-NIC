@@ -3,7 +3,7 @@
 This directory contains program to generate Traffic and Table Trace.
 
 **exp.py** is a mnndn script that emulates several NDN hosts on a single broadcast media.
-NDN hosts are connected via an Ethernet switch, and all communications use the UDP multicast face, so that every host can see all the traffic on the multicast group, which emulates the broadcast media.  
+NDN hosts are connected via an Ethernet switch, and all communications use the UDP multicast face, so that every host can see all the traffic on the multicast group, which emulates the broadcast media.
 **NFD-ttt.patch** is an NFD patch that allows NFD to write Traffic and Table Trace to a file.
 This functionality can be enabled and configured via environment variables, described in ttt.hpp after applying the patch.
 
@@ -12,7 +12,7 @@ This functionality can be enabled and configured via environment variables, desc
 1. Install ndn-cxx 0.5.1.
 2. Install ndn-tools 0.4.0.
 3. Fetch NFD 0.5.1, patch with `NFD-ttt.patch`, and install patched version.
-4. Install [mnndn](http://github.com/yoursunny/mnndn).
+4. Install [mnndn](https://github.com/yoursunny/mnndn/tree/ec5f4ea39688807eca9d106e3a6b8cf092e8c45f).
 
 ## Usage
 
